@@ -1,16 +1,28 @@
 package ApacheSpark.Testing;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
+
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.spark.Partition;
+import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.Function2;
+import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.rdd.RDD;
 import org.junit.Assert;
 
+import scala.Tuple2;
+import scala.collection.JavaConversions;
 import scala.reflect.ClassTag;
 
 /**
- * Clase que representa un objeto JavaRDDTest que contiene los metodos para testear las funciones que dispone un RDD.
+ * Clase que representa un objeto JavaRDDTest que contiene los metodos para testear las funciones que dispone un JavaRDD.
  * @author Alvaro R. Perez Entrenas
- *
  */
 public class JavaRDDTest extends JavaRDD {
 	
@@ -20,9 +32,9 @@ public class JavaRDDTest extends JavaRDD {
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * Constructor dado un RDD y su ClassTag.
-	 * @param rdd
-	 * @param classTag
+	 * Constructor dado un <b>RDD</b> y su <b>ClassTag</b>.
+	 * @param rdd (RDD).
+	 * @param classTag (ClassTagg).
 	 */
 	public JavaRDDTest(RDD<?> rdd, ClassTag<?> classTag) {
 		super(rdd, classTag);
@@ -30,107 +42,139 @@ public class JavaRDDTest extends JavaRDD {
 	
 	/**
 	 * Constructor dado un JavaRDD.
-	 * @param rdd
+	 * @param rdd (JavaRDD).
 	 */
 	public JavaRDDTest(JavaRDD<?> rdd) {
-		super(rdd.toRDD(rdd), rdd.classTag());
+		super(rdd.rdd(), rdd.classTag());
 	}
 	
 	/**
-	 * Metodo que comprueba si una funcion de tipo reduce con parametros Strings es correcta.
-	 * 
-	 * @param function (Function2<String, String, String>) - Funcion reduce que se desea testear.
-	 * @return (boolean) - Resultado del test.
+	 * Metodo que comprueba si una funcion de tipo <b>reduce()</b>.
+	 * @param function (Function2<Object, Object, Object>) - Funcion reduce que se desea testear.
 	 */
-	public boolean reduceTestString(Function2<String, String, String> function) {
+	public void reduceTest(Function2<Object, Object, Object> function) {
 		
 		// Se cambia el numero de particiones
-		JavaRDD<String> rdd1 = this.rdd().toJavaRDD().coalesce(1, false);
-		JavaRDD<String> rdd2 = this.rdd().toJavaRDD().coalesce(2, false);
-		JavaRDD<String> rdd3 = this.rdd().toJavaRDD().coalesce(3, false);
+		JavaRDD<Object> rdd1 = this.coalesce(1, false);
+		JavaRDD<Object> rdd2 = this.coalesce(2, false);
+		JavaRDD<Object> rdd3 = this.coalesce(3, false);
 		
-		String result1 = rdd1.reduce(function);
-		String result2 = rdd2.reduce(function);
-		String result3 = rdd3.reduce(function);
+		Object result = rdd1.reduce(function);
+		Object result2 = rdd2.reduce(function);
+		Object result3 = rdd3.reduce(function);
 		
-		// Se comprueban que sean iguales
-		Assert.assertEquals(result1, result2);
-		Assert.assertEquals(result1, result3);
+		Assert.assertEquals(result, result2);
+		Assert.assertEquals(result, result3);
 		
 		// Se cambia el orden las particiones (mismas particiones que rdd3 pero con los datos desordenados)
-		JavaRDD<String> rdd4 = this.rdd().toJavaRDD().coalesce(3, true);
-		String result4 = rdd4.reduce(function);
+		JavaRDD<Object> rdd4 = this.coalesce(3, true);
+		Object result4 = rdd4.reduce(function);
 		
 		// Se comprueban que los resultados sean igual
 		Assert.assertEquals(result3, result4);
-		
-		return true;
 	}
 	
 	/**
-	 * Metodo que comprueba si una funcion de tipo reduce con parametros Integers es correcta. Se realizan
-	 * las siguientes comprobaciones:
-	 * - Propiedad Asociativa.
-	 * - Propiedad Conmutativa.
-	 * 
-	 * @param function (Function2<Integer, Integer, Integer>) - Funcion reduce que se desea testear.
-	 * @return (boolean) - Resultado del test.
+	 * Metodo que comprueba si una funcion de tipo <b>map()</b>.
+	 *  - Simula que el numero de tareas mapper cambie.
+	 *  - Simula el RDD este cacheado en memoria.
+	 *  - Simula que un ejecutor falle.
+	 * @param function (Function<Object, Object>) - Funcion map que se desea testear.
 	 */
-	public boolean reduceTestInteger(Function2<Integer, Integer, Integer> function) {
+	public void mapTest(Function<Object, Object> function) {
 		
 		// Se cambia el numero de particiones
-		JavaRDD<Integer> rdd1 = this.rdd().toJavaRDD().coalesce(1, false);
-		JavaRDD<Integer> rdd2 = this.rdd().toJavaRDD().coalesce(2, false);
-		JavaRDD<Integer> rdd3 = this.rdd().toJavaRDD().coalesce(3, false);
+		JavaRDD<Object> rdd1 = this.coalesce(1, true);
+		JavaRDD<Object> rdd2 = this.coalesce(2, true);
+		JavaRDD<Object> rdd3 = this.coalesce(3, true);
 		
-		Integer result1 = rdd1.reduce(function);
-		Integer result2 = rdd2.reduce(function);
-		Integer result3 = rdd3.reduce(function);
+		JavaRDD<Object> result1 = rdd1.map(function).sortBy(f -> f, true, 1);
+		JavaRDD<Object> result2 = rdd2.map(function).sortBy(f -> f, true, 2);
+		JavaRDD<Object> result3 = rdd3.map(function).sortBy(f -> f, true, 3);
 		
-		// Se comprueban que sean iguales
-		Assert.assertEquals(result1, result2);
-		Assert.assertEquals(result1, result3);
+		List<Object> collect1 = result1.collect();
+		List<Object> collect2 = result2.collect();
+		List<Object> collect3 = result3.collect();
 		
-		// Se cambia el orden las particiones (mismas particiones que rdd3 pero con los datos desordenados)
-		JavaRDD<Integer> rdd4 = this.rdd().toJavaRDD().coalesce(3, true);
-		Integer result4 = rdd4.reduce(function);
+		Assert.assertEquals(collect1, collect2);
+		Assert.assertEquals(collect1, collect3);
 		
-		// Se comprueban que los resultados sean igual
-		Assert.assertEquals(result3, result4);
+		// Cacheo de RDD en memoria
+		JavaRDD<Object> rdd4 = rdd3.cache();
+		JavaRDD<Object> result4 = rdd4.map(function).sortBy(f -> f, true, 3);
+		List<Object> collect4 = result4.collect();
 		
-		return true;
+		Assert.assertEquals(collect3, collect4);
+		
+		// Que un mapper falle y se vuelva a ejecutar por separado
+		JavaRDD<Object> rdd5 = rdd1.sample(false, 0.25);
+		JavaRDD<Object> rdd6 = subtractRDDElements(rdd5, rdd1);
+		
+		JavaRDD<Object> result5 = rdd5.map(function);
+		JavaRDD<Object> result6 = rdd6.map(function);
+		
+		JavaRDD<Object> result7 = result5.union(result6).sortBy(f -> f, true, result6.getNumPartitions());
+		
+		List<Object> collect5 = result7.collect();
+		
+		Assert.assertEquals(collect4, collect5);
+	}
+	
+	private JavaRDD<Object> subtractRDDElements(JavaRDD<Object> rdd1, JavaRDD<Object> rdd2) {
+		
+		ArrayList<Object> collectRDD1 = new ArrayList<Object>(rdd1.collect());
+		ArrayList<Object> collectRDD2 = new ArrayList<Object>(rdd2.collect());
+		
+		for (Object obj : collectRDD1) {
+			collectRDD2.remove(obj);
+		}
+		
+		return this.context().parallelize(JavaConversions.asScalaBuffer(collectRDD2), rdd2.getNumPartitions(), this.classTag()).toJavaRDD();
 	}
 	
 	/**
-	 * Metodo que comprueba si una funcion de tipo reduce con parametros Double es correcta.
-	 * 
-	 * @param function (Function2<Double, Double, Double>) - Funcion reduce que se desea testear.
-	 * @return (boolean) - Resultado del test.
+	 * Metodo que comprueba si una funcion de tipo <b>mapToPair()</b>.
+	 *  - Simula que el numero de tareas mapper cambie.
+	 *  - Simula el RDD este cacheado en memoria.
+	 *  - Simula que un ejecutor falle.
+	 * @param function (PairFunction<Object, Object, Object>) - Funcion mapToPair que se desea testear.
 	 */
-	public boolean reduceTestDouble(Function2<Double, Double, Double> function) {
+	public void mapToPairTest(PairFunction<Object, Object, Object> function) {
 		
-		// Se cambia el numero de particiones
-		JavaRDD<Double> rdd1 = this.rdd().toJavaRDD().coalesce(1, false);
-		JavaRDD<Double> rdd2 = this.rdd().toJavaRDD().coalesce(2, false);
-		JavaRDD<Double> rdd3 = this.rdd().toJavaRDD().coalesce(3, false);
+		// Numero de mappers cambie
+		JavaRDD<Object> rdd1 = this.coalesce(1, false);
+		JavaRDD<Object> rdd2 = this.coalesce(2, false);
+		JavaRDD<Object> rdd3 = this.coalesce(3, false);
 		
-		Double result1 = rdd1.reduce(function);
-		Double result2 = rdd2.reduce(function);
-		Double result3 = rdd3.reduce(function);
+		JavaPairRDD<Object, Object> pair1 = rdd1.mapToPair(function).sortByKey();
+		JavaPairRDD<Object, Object> pair2 = rdd2.mapToPair(function).sortByKey();
+		JavaPairRDD<Object, Object> pair3 = rdd3.mapToPair(function).sortByKey();
 		
-		// Se comprueban que sean iguales
-		Assert.assertEquals(result1.compareTo(result2), 0);
-		Assert.assertEquals(result1.compareTo(result3), 0);
+		List<Tuple2<Object, Object>> collect1 = pair1.collect();
+		List<Tuple2<Object, Object>> collect2 = pair2.collect();
+		List<Tuple2<Object, Object>> collect3 = pair3.collect();
 		
-		// Se cambia el orden las particiones (mismas particiones que rdd3 pero con los datos desordenados)
-		JavaRDD<Double> rdd4 = this.rdd().toJavaRDD().coalesce(3, true);
+		Assert.assertEquals(collect1, collect2);
+		Assert.assertEquals(collect1, collect3);
 		
-		Double result4 = rdd4.reduce(function);
+		// Cacheo de RDD en memoria
+		JavaRDD<Object> rdd4 = rdd3.cache();
+		JavaPairRDD<Object, Object> pair4 = rdd4.mapToPair(function).sortByKey();
+		List<Tuple2<Object, Object>> collect4 = pair4.collect();
+		Assert.assertEquals(collect3, collect4);
 		
-		// Se comprueban que los resultados sean igual
-		Assert.assertEquals(result3.compareTo(result4), 0);
+		// Que un mapper aleatorio falle y se vuelva a ejecutar por separado
+		JavaRDD<Object> rdd5 = rdd1.sample(false, 0.25);
+		JavaRDD<Object> rdd6 = subtractRDDElements(rdd5, rdd1);
 		
-		return true;
+		JavaPairRDD<Object, Object> pair5 = rdd5.mapToPair(function).sortByKey();
+		JavaPairRDD<Object, Object> pair6 = rdd6.mapToPair(function).sortByKey();
+		
+		JavaPairRDD<Object, Object> pair7 = pair5.union(pair6).sortByKey();
+		
+		List<Tuple2<Object, Object>> collect5 = pair7.collect();
+		
+		Assert.assertEquals(collect4, collect5);
 	}
 
 }

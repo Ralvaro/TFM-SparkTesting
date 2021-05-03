@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaDoubleRDD;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -14,106 +15,236 @@ import org.junit.Test;
 
 import scala.Tuple2;
 
-
 /**
- * Clase con los test unitarios para comprobar el funcionamiento de la herramienta.
+ * Clase con los test unitarios para comprobar el funcionamiento de la
+ * herramienta.
  */
-public class TestApp
-{
-	 private JavaSparkContext sc = null;
+public class TestApp {
+
+	/**
+	 * Spark Context
+	 */
+	private JavaSparkContext sc = null;
+
+	/**
+	 * Lista de Integers
+	 */
+	private List<Integer> integerList = null;
+	
+	/**
+	 * Lista de Doubles
+	 */
+	private List<Double> doubleList = null;
+	
+	/**
+	 * Lista de frases (String)
+	 */
+	private List<String> linesList = null;
+	
+	/**
+	 * Lista de palabras (String)
+	 */
+	private List<String> wordsList = null;
+	
+	/**
+	 * Lista de letras (String)
+	 */
+	private List<String> lettersList = null;
+	
+	/**
+	 * Lista de tuplas
+	 */
+	private List<Tuple2<String, Integer>> tupleList = null;
+
+	/**
+	 * Metodo para inicializar las variables y configurar y crear el Spark Context antes de ejecutar los tests.
+	 */
+	@Before
+	public void setUp() {
+
+		// Configurar el Spark Context
+		SparkConf conf = new SparkConf().setMaster("local[*]").setAppName("TestApp");
 		
-		@Before
-		public void setUp() {
-			
-			SparkConf conf = new SparkConf().setMaster("local[*]").setAppName("TestApp");
-			sc = new JavaSparkContext(conf);
-		}
+		// Crear el Spark Context
+		sc = new JavaSparkContext(conf);
+
+		// Inicializar variables que se usaran en los test
+		integerList = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 		
-		@After
-		public void setDown() {
-			sc.close();
-		}
+		doubleList = Arrays.asList(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0);
 		
-		@Test
-		public void testSuccessReduceInteger() {
-			
-			JavaRDD<Integer> rdd = sc.parallelize(Arrays.asList(1,2,3,4,5,6,7,8,9,10));
-		    
-		    JavaRDDTest testRDD = new JavaRDDTest(rdd);
-		    
-		    boolean test = testRDD.reduceTestInteger((x,y) -> x*y);
-		    
-		    System.out.println(test);
-			
-		}
-				
-		@Test
-		public void testFailInteger() {
-			
-			JavaRDD<Integer> rdd = sc.parallelize(Arrays.asList(1,2,3,4,5,6,7,8,9,10));
-		    
-		    JavaRDDTest testRDD = new JavaRDDTest(rdd);
-		    
-		    boolean test = testRDD.reduceTestInteger((x,y) -> x-y);
-		    
-		    System.out.println(test);
-			
-		}
+		linesList = Arrays.asList("En un lugar de", "la mancha", "de cuyo nombre", "no quiero acordarme");
 		
-		@Test
-		public void testSuccessReduceDouble() {
-			
-			JavaRDD<Double> rdd = sc.parallelize(Arrays.asList(1.0,2.1,3.2,4.3,5.1,6.2,7.9,8.1,0.1,10.1));
-		    
-		    JavaRDDTest testRDD = new JavaRDDTest(rdd);
-		    
-		    boolean test = testRDD.reduceTestDouble((x,y) -> x+y);
-		    
-		    System.out.println(test);
-			
-		}
+		wordsList = Arrays.asList("no", "ha", "mucho", "tiempo", "que", "vivia", "un", "hidalgo", "de", "los", "de", "lanza", "en", "astillero");
 		
-		@Test
-		public void testFailReduceDouble() {
-			
-			JavaRDD<Double> rdd = sc.parallelize(Arrays.asList(1.0,2.1,3.2,4.3,5.1,6.2,7.9,8.1,0.1,10.1));
-		    
-		    JavaRDDTest testRDD = new JavaRDDTest(rdd);
-		    
-		    boolean test = testRDD.reduceTestDouble((x,y) -> x/y);
-		    
-		    System.out.println(test);
-			
-		}
+		lettersList = Arrays.asList("a", "d", "a", "r", "g", "a", "a", "n", "t", "i", "g", "u", "a");
 		
-		@Test
-		public void testFailReduceString() {
-			
-		    JavaRDD<String> rdd = sc.parallelize(Arrays.asList("a","b","c","d","f","g","h","i"));
-				    
-			JavaRDDTest testRDD = new JavaRDDTest(rdd);
-			
-			boolean test = testRDD.reduceTestString((x,y) -> new StringBuilder().append(x).append(y).toString());
-			
-			System.out.println(test);
-			 	
-		}
+		tupleList = new ArrayList<Tuple2<String, Integer>>();
+			tupleList.add(new Tuple2<String, Integer>("C", 7));
+			tupleList.add(new Tuple2<String, Integer>("A", 3));
+			tupleList.add(new Tuple2<String, Integer>("A", 1));
+			tupleList.add(new Tuple2<String, Integer>("B", 2));
+			tupleList.add(new Tuple2<String, Integer>("C", 7));
+			tupleList.add(new Tuple2<String, Integer>("A", 1));
+			tupleList.add(new Tuple2<String, Integer>("B", 2));
+			tupleList.add(new Tuple2<String, Integer>("C", 7));
+			tupleList.add(new Tuple2<String, Integer>("A", 3));
+			tupleList.add(new Tuple2<String, Integer>("A", 3));
+			tupleList.add(new Tuple2<String, Integer>("A", 1));
+			tupleList.add(new Tuple2<String, Integer>("B", 2));
+			tupleList.add(new Tuple2<String, Integer>("C", 7));
 		
-		@Test
-		public void testSuccessReduceByKey() {
-			
-			List<Tuple2<String, Integer>> list = new ArrayList<Tuple2<String,Integer>>();
-			
-			list.add(new Tuple2<String, Integer>("A", 3));
-			list.add(new Tuple2<String, Integer>("A", 1));
-			list.add(new Tuple2<String, Integer>("B", 2));
-			list.add(new Tuple2<String, Integer>("C", 7));
-			
-			JavaPairRDD<String, Integer> rdd = sc.parallelizePairs(list);
-			
-			JavaPairRDD<String, Integer> rdd2 = rdd.reduceByKey((x,y) -> x+y);
-			
-			System.out.println(rdd2.collect());
-			
-		}
+		
+	}
+
+	/**
+	 * Metodo para cerrar el Spark Context despues de ejecutar los tests.
+	 */
+	@After
+	public void setDown() {
+		
+		// Cerrar el SparkContext
+		sc.close();
+	}
+
+	/**
+	 * Test para comprobar el correcto funcionamiento de una funcion <b>reduce()</b> de tipo <i>Integer</i>.
+	 * Se usa una suma y una multiplicacion.
+	 */
+	@Test
+	public void testSuccessReduceInteger() {
+
+		JavaRDD<Integer> rdd = sc.parallelize(integerList);
+
+		JavaRDDTest rddTest = new JavaRDDTest(rdd);
+
+		// Sumar los elementos
+		rddTest.reduceTest((x, y) -> (int) x + (int) y);
+		
+		// Multiplicar los elementos
+		rddTest.reduceTest((x, y) -> (int) x * (int) y);
+
+	}
+
+	/**
+	 * Test para comprobar el mal funcionamiento de una funcion <b>reduce()</b> de tipo <i>Integer</i>.
+	 * Se usa una resta.
+	 */
+	@Test
+	public void testFailReduceInteger() {
+
+		JavaRDD<Integer> rdd = sc.parallelize(integerList);
+
+		JavaRDDTest rddTest = new JavaRDDTest(rdd);
+
+		// Restar los elementos
+		rddTest.reduceTest((x, y) -> (int) x - (int) y);
+	}
+	
+	/**
+	 * Test para comprobar el correcto funcionamiento de una funcion <b>reduce()</b> de tipo <i>Double</i>.
+	 * Se usa una suma y una multiplicacion.
+	 */
+	@Test
+	public void testSuccessReduceDouble() {
+		
+		JavaDoubleRDD rdd = sc.parallelizeDoubles(doubleList);
+		
+		JavaDoubleRDDTest rddTest = new JavaDoubleRDDTest(rdd);
+		
+		// Sumar los elementos
+		rddTest.reduceTest((x, y) -> x + y);
+		
+		// Multiplicar los elementos
+		rddTest.reduceTest((x, y) ->  x * y);
+	}
+	
+	/**
+	 * Test para comprobar el mal funcionamiento de una funcion <b>reduce()</b> de tipo <i>Double</i>.
+	 * Se usa una resta.
+	 */
+	@Test
+	public void testFailReduceDouble() {
+		
+		JavaDoubleRDD rdd = sc.parallelizeDoubles(doubleList);
+		
+		JavaDoubleRDDTest rddTest = new JavaDoubleRDDTest(rdd);
+		
+		rddTest.reduceTest((x, y) -> x - y);
+	}
+
+	/**
+	 * Test para comprobar el mal funcionamiento de una funcion <b>reduce()</b> de tipo <i>String</i>.
+	 * Se usa una concatenacion de letras.
+	 */
+	@Test
+	public void testFailReduceString() {
+
+		JavaRDD<String> rdd = sc.parallelize(lettersList);
+
+		JavaRDDTest testRDD = new JavaRDDTest(rdd);
+
+		testRDD.reduceTest((x, y) -> new StringBuilder().append(x).append(y).toString());
+	}
+
+	/**
+	 * Test para comprobar el correcto funcionamiento de una funcion <b>reduceByKey()</b> de tipo <i>Integer</i>.
+	 * Se usa una suma y una multiplicacion.
+	 */
+	@Test
+	public void testSuccessReduceByKey() {
+		
+		JavaPairRDD<String, Integer> rdd = sc.parallelizePairs(tupleList);
+
+		JavaPairRDDTest testPairRDD = new JavaPairRDDTest(rdd);
+
+		// Sumar los elementos
+		testPairRDD.reduceByKeyTest((x, y) -> (int) x + (int) y);
+		
+		// Multiplicar los elementos
+		testPairRDD.reduceByKeyTest((x, y) -> (int) x * (int) y);
+	}
+	
+	/**
+	 * Test para comprobar el mal funcionamiento de una funcion <b>reduceByKey()</b> de tipo <i>Integer</i>.
+	 * Se usa una resta.
+	 */
+	@Test
+	public void testFailReduceByKey() {
+		
+		JavaPairRDD<String, Integer> rdd = sc.parallelizePairs(tupleList);
+
+		JavaPairRDDTest testPairRDD = new JavaPairRDDTest(rdd);
+
+		testPairRDD.reduceByKeyTest((x, y) -> (int) x - (int) y);
+	}
+	
+	/**
+	 * Test para comprobar el correcto funcionamiento de una funcion <b>map()</b> de tipo <i>String</i>.
+	 * Se usa funcion para convertir a mayuscula la cadena de String.
+	 */
+	@Test
+	public void testSuccessMapString() {
+		
+		JavaRDD<String> rdd = sc.parallelize(linesList);
+		
+		JavaRDDTest rddTest = new JavaRDDTest(rdd);
+		
+		rddTest.mapTest(s -> ((String) s).toUpperCase());
+	}
+	
+	/**
+	 * Test para comprobar el correcto funcionamiento de una funcion <b>mapToPair()</b> de tipo <i>String</i> con <i>Integer</i>.
+	 * Se usa funcion para crear una tupla (s, 1) con la palabra.
+	 */
+	@Test
+	public void testSuccessMapToPairStringInteger() {
+		
+		JavaRDD<String> rdd = sc.parallelize(wordsList);
+		
+		JavaRDDTest rddTest = new JavaRDDTest(rdd);
+		
+		rddTest.mapToPairTest(s -> new Tuple2(s, 1));
+	}
+
 }
