@@ -44,6 +44,7 @@ public class TestApp {
 	/**
 	 * Lista de palabras (String)
 	 */
+	@SuppressWarnings("unused")
 	private List<String> wordsList = null;
 	
 	/**
@@ -116,13 +117,13 @@ public class TestApp {
 
 		JavaRDD<Integer> rdd = sc.parallelize(integerList);
 
-		JavaRDDTest rddTest = new JavaRDDTest(rdd);
+		JavaRDDTest<Integer> rddTest = new JavaRDDTest<>(rdd);
 
 		// Sumar los elementos
-		rddTest.reduceTest((x, y) -> (int) x + (int) y);
+		rddTest.reduceTest((x, y) -> x + y);
 		
 		// Multiplicar los elementos
-		rddTest.reduceTest((x, y) -> (int) x * (int) y);
+		rddTest.reduceTest((x, y) ->  x * y);
 
 	}
 
@@ -135,10 +136,10 @@ public class TestApp {
 
 		JavaRDD<Integer> rdd = sc.parallelize(integerList);
 
-		JavaRDDTest rddTest = new JavaRDDTest(rdd);
+		JavaRDDTest<Integer> rddTest = new JavaRDDTest<>(rdd);
 
 		// Restar los elementos
-		rddTest.reduceTest((x, y) -> (int) x - (int) y);
+		rddTest.reduceTest((x, y) -> x - y);
 	}
 	
 	/**
@@ -182,7 +183,7 @@ public class TestApp {
 
 		JavaRDD<String> rdd = sc.parallelize(lettersList);
 
-		JavaRDDTest testRDD = new JavaRDDTest(rdd);
+		JavaRDDTest<String> testRDD = new JavaRDDTest<>(rdd);
 
 		testRDD.reduceTest((x, y) -> new StringBuilder().append(x).append(y).toString());
 	}
@@ -196,13 +197,13 @@ public class TestApp {
 		
 		JavaPairRDD<String, Integer> rdd = sc.parallelizePairs(tupleList);
 
-		JavaPairRDDTest testPairRDD = new JavaPairRDDTest(rdd);
+		JavaPairRDDTest<String, Integer> testPairRDD = new JavaPairRDDTest<>(rdd);
 
 		// Sumar los elementos
-		testPairRDD.reduceByKeyTest((x, y) -> (int) x + (int) y);
+		testPairRDD.reduceByKeyTest((x, y) -> x + y);
 		
 		// Multiplicar los elementos
-		testPairRDD.reduceByKeyTest((x, y) -> (int) x * (int) y);
+		testPairRDD.reduceByKeyTest((x, y) -> x * y);
 	}
 	
 	/**
@@ -214,9 +215,9 @@ public class TestApp {
 		
 		JavaPairRDD<String, Integer> rdd = sc.parallelizePairs(tupleList);
 
-		JavaPairRDDTest testPairRDD = new JavaPairRDDTest(rdd);
+		JavaPairRDDTest<String, Integer> testPairRDD = new JavaPairRDDTest<>(rdd);
 
-		testPairRDD.reduceByKeyTest((x, y) -> (int) x - (int) y);
+		testPairRDD.reduceByKeyTest((x, y) -> x - y);
 	}
 	
 	/**
@@ -228,23 +229,11 @@ public class TestApp {
 		
 		JavaRDD<String> rdd = sc.parallelize(linesList);
 		
-		JavaRDDTest rddTest = new JavaRDDTest(rdd);
+		JavaRDDTest<String> rddTest = new JavaRDDTest<>(rdd);
 		
-		rddTest.mapTest(s -> ((String) s).toUpperCase());
+		rddTest.mapTest(s -> s.toUpperCase());
 	}
 	
-	/**
-	 * Test para comprobar el correcto funcionamiento de una funcion <b>mapToPair()</b> de tipo <i>String</i> con <i>Integer</i>.
-	 * Se usa funcion para crear una tupla (s, 1) con la palabra.
-	 */
-	@Test
-	public void testSuccessMapToPairStringInteger() {
-		
-		JavaRDD<String> rdd = sc.parallelize(wordsList);
-		
-		JavaRDDTest rddTest = new JavaRDDTest(rdd);
-		
-		rddTest.mapToPairTest(s -> new Tuple2(s, 1));
-	}
+	
 
 }
