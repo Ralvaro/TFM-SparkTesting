@@ -232,6 +232,8 @@ public class TestApp {
 		JavaRDDTest<String> rddTest = new JavaRDDTest<>(rdd);
 		
 		rddTest.map(s -> s.toUpperCase());
+		
+		rddTest.mapToPair(s -> new Tuple2<String, Integer>(s, 1));
 	}
 	
 	

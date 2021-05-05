@@ -2,12 +2,16 @@ package ApacheSpark.Testing;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.Function2;
+import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.rdd.RDD;
 import org.junit.Assert;
 
+import scala.Tuple2;
 import scala.collection.JavaConversions;
 import scala.reflect.ClassTag;
 
@@ -114,6 +118,47 @@ public class JavaRDDTest<T> extends JavaRDD<T> {
 		
 		return result1;
 	}
+	
+	public <K,V> JavaPairRDD<K, V> mapToPair(PairFunction<T, K, V> function) {
+		
+		// Numero de mappers cambie
+		JavaRDD<T> rdd1 = this.coalesce(1, false);
+		JavaRDD<T> rdd2 = this.coalesce(2, false);
+		JavaRDD<T> rdd3 = this.coalesce(3, false);
+		
+		JavaPairRDD<K, V> pair1 = rdd1.mapToPair(function).sortByKey();
+		JavaPairRDD<K, V> pair2 = rdd2.mapToPair(function).sortByKey();
+		JavaPairRDD<K, V> pair3 = rdd3.mapToPair(function).sortByKey();
+		
+		List<Tuple2<K, V>> collect1 = pair1.collect();
+		List<Tuple2<K, V>> collect2 = pair2.collect();
+		List<Tuple2<K, V>> collect3 = pair3.collect();
+		
+		Assert.assertEquals(collect1, collect2);
+		Assert.assertEquals(collect1, collect3);
+		
+		// Cacheo de RDD en memoria
+		JavaRDD<T> rdd4 = rdd3.cache();
+		JavaPairRDD<K, V> pair4 = rdd4.mapToPair(function).sortByKey();
+		List<Tuple2<K, V>> collect4 = pair4.collect();
+		Assert.assertEquals(collect3, collect4);
+		
+		// Que un mapper aleatorio falle y se vuelva a ejecutar por separado
+		JavaRDD<T> rdd5 = rdd1.sample(false, 0.25);
+		JavaRDD<T> rdd6 = subtractRDDElements(rdd5, rdd1);
+		
+		JavaPairRDD<K, V> pair5 = rdd5.mapToPair(function).sortByKey();
+		JavaPairRDD<K, V> pair6 = rdd6.mapToPair(function).sortByKey();
+		
+		JavaPairRDD<K, V> pair7 = pair5.union(pair6).sortByKey();
+		
+		List<Tuple2<K, V>> collect5 = pair7.collect();
+		
+		Assert.assertEquals(collect4, collect5);
+		
+		return pair1;
+	}
+	
 	
 	
 	/**
