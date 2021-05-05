@@ -43,7 +43,7 @@ public class JavaRDDTest<T> extends JavaRDD<T> {
 	 * Metodo que comprueba si una funcion de tipo <b>reduce()</b>.
 	 * @param function (Function2<Object, Object, Object>) - Funcion reduce que se desea testear.
 	 */
-	public T reduceTest(Function2<T, T, T> function) {
+	public T reduce(Function2<T, T, T> function) {
 		
 		// Se cambia el numero de particiones
 		JavaRDD<T> rdd1 = this.coalesce(1, false);
@@ -74,28 +74,28 @@ public class JavaRDDTest<T> extends JavaRDD<T> {
 	 *  - Simula que un ejecutor falle.
 	 * @param function (Function<Object, Object>) - Funcion map que se desea testear.
 	 */
-	public JavaRDD<T> mapTest(Function<T, T> function) {
+	public <R> JavaRDD<R> map(Function<T, R> function) {
 		
 		// Se cambia el numero de particiones
 		JavaRDD<T> rdd1 = this.coalesce(1, true);
 		JavaRDD<T> rdd2 = this.coalesce(2, true);
 		JavaRDD<T> rdd3 = this.coalesce(3, true);
 		
-		JavaRDD<T> result1 = rdd1.map(function).sortBy(f -> f, true, 1);
-		JavaRDD<T> result2 = rdd2.map(function).sortBy(f -> f, true, 2);
-		JavaRDD<T> result3 = rdd3.map(function).sortBy(f -> f, true, 3);
+		JavaRDD<R> result1 = rdd1.map(function).sortBy(f -> f, true, 1);
+		JavaRDD<R> result2 = rdd2.map(function).sortBy(f -> f, true, 2);
+		JavaRDD<R> result3 = rdd3.map(function).sortBy(f -> f, true, 3);
 		
-		List<T> collect1 = result1.collect();
-		List<T> collect2 = result2.collect();
-		List<T> collect3 = result3.collect();
+		List<R> collect1 = result1.collect();
+		List<R> collect2 = result2.collect();
+		List<R> collect3 = result3.collect();
 		
 		Assert.assertEquals(collect1, collect2);
 		Assert.assertEquals(collect1, collect3);
 		
 		// Cacheo de RDD en memoria
 		JavaRDD<T> rdd4 = rdd3.cache();
-		JavaRDD<T> result4 = rdd4.map(function).sortBy(f -> f, true, 3);
-		List<T> collect4 = result4.collect();
+		JavaRDD<R> result4 = rdd4.map(function).sortBy(f -> f, true, 3);
+		List<R> collect4 = result4.collect();
 		
 		Assert.assertEquals(collect3, collect4);
 		
@@ -103,12 +103,12 @@ public class JavaRDDTest<T> extends JavaRDD<T> {
 		JavaRDD<T> rdd5 = rdd1.sample(false, 0.25);
 		JavaRDD<T> rdd6 = subtractRDDElements(rdd5, rdd1);
 		
-		JavaRDD<T> result5 = rdd5.map(function);
-		JavaRDD<T> result6 = rdd6.map(function);
+		JavaRDD<R> result5 = rdd5.map(function);
+		JavaRDD<R> result6 = rdd6.map(function);
 		
-		JavaRDD<T> result7 = result5.union(result6).sortBy(f -> f, true, result6.getNumPartitions());
+		JavaRDD<R> result7 = result5.union(result6).sortBy(f -> f, true, result6.getNumPartitions());
 		
-		List<T> collect5 = result7.collect();
+		List<R> collect5 = result7.collect();
 		
 		Assert.assertEquals(collect4, collect5);
 		

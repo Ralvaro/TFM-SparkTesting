@@ -31,7 +31,7 @@ public class JavaPairRDDTest<K, V> extends JavaPairRDD<K, V> {
 	 * Metodo de test para una funcion <b>reduceByKey()</b>.
 	 * @param function (Function2<Object, Object, Object>) - Funcion reduce que se desea testear.
 	 */
-	public JavaPairRDD<K, V> reduceByKeyTest(Function2<V, V, V> function) {
+	public JavaPairRDD<K, V> reduceByKey(Function2<V, V, V> function) {
 		
 		// Se cambia el numero de particiones
 		JavaPairRDD<K, V> rdd1 = this.coalesce(1, false);

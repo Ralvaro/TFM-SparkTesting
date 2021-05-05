@@ -36,7 +36,7 @@ public class JavaDoubleRDDTest extends JavaDoubleRDD {
 	 * Metodo de test para una funcion <b>reduce()</b>.
 	 * @param function (Function2<Double, Double, Double>) - Funcion reduce que se desea testear.
 	 */
-	public void reduceTest(Function2<Double, Double, Double> function) {
+	public Double reduce(Function2<Double, Double, Double> function) {
 		
 		// Se cambia el numero de particiones
 		JavaDoubleRDD rdd1 = this.coalesce(1, false);
@@ -55,6 +55,8 @@ public class JavaDoubleRDDTest extends JavaDoubleRDD {
 		Double result4 = rdd4.reduce(function);
 		
 		Assert.assertEquals(result3, result4);
+		
+		return result1;
 	}
 
 }

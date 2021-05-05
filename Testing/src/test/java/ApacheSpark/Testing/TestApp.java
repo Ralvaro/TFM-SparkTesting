@@ -120,10 +120,10 @@ public class TestApp {
 		JavaRDDTest<Integer> rddTest = new JavaRDDTest<>(rdd);
 
 		// Sumar los elementos
-		rddTest.reduceTest((x, y) -> x + y);
+		rddTest.reduce((x, y) -> x + y);
 		
 		// Multiplicar los elementos
-		rddTest.reduceTest((x, y) ->  x * y);
+		rddTest.reduce((x, y) ->  x * y);
 
 	}
 
@@ -139,7 +139,7 @@ public class TestApp {
 		JavaRDDTest<Integer> rddTest = new JavaRDDTest<>(rdd);
 
 		// Restar los elementos
-		rddTest.reduceTest((x, y) -> x - y);
+		rddTest.reduce((x, y) -> x - y);
 	}
 	
 	/**
@@ -154,10 +154,10 @@ public class TestApp {
 		JavaDoubleRDDTest rddTest = new JavaDoubleRDDTest(rdd);
 		
 		// Sumar los elementos
-		rddTest.reduceTest((x, y) -> x + y);
+		rddTest.reduce((x, y) -> x + y);
 		
 		// Multiplicar los elementos
-		rddTest.reduceTest((x, y) ->  x * y);
+		rddTest.reduce((x, y) ->  x * y);
 	}
 	
 	/**
@@ -171,7 +171,7 @@ public class TestApp {
 		
 		JavaDoubleRDDTest rddTest = new JavaDoubleRDDTest(rdd);
 		
-		rddTest.reduceTest((x, y) -> x - y);
+		rddTest.reduce((x, y) -> x - y);
 	}
 
 	/**
@@ -185,7 +185,7 @@ public class TestApp {
 
 		JavaRDDTest<String> testRDD = new JavaRDDTest<>(rdd);
 
-		testRDD.reduceTest((x, y) -> new StringBuilder().append(x).append(y).toString());
+		testRDD.reduce((x, y) -> new StringBuilder().append(x).append(y).toString());
 	}
 
 	/**
@@ -200,10 +200,10 @@ public class TestApp {
 		JavaPairRDDTest<String, Integer> testPairRDD = new JavaPairRDDTest<>(rdd);
 
 		// Sumar los elementos
-		testPairRDD.reduceByKeyTest((x, y) -> x + y);
+		testPairRDD.reduceByKey((x, y) -> x + y);
 		
 		// Multiplicar los elementos
-		testPairRDD.reduceByKeyTest((x, y) -> x * y);
+		testPairRDD.reduceByKey((x, y) -> x * y);
 	}
 	
 	/**
@@ -217,7 +217,7 @@ public class TestApp {
 
 		JavaPairRDDTest<String, Integer> testPairRDD = new JavaPairRDDTest<>(rdd);
 
-		testPairRDD.reduceByKeyTest((x, y) -> x - y);
+		testPairRDD.reduceByKey((x, y) -> x - y);
 	}
 	
 	/**
@@ -231,7 +231,7 @@ public class TestApp {
 		
 		JavaRDDTest<String> rddTest = new JavaRDDTest<>(rdd);
 		
-		rddTest.mapTest(s -> s.toUpperCase());
+		rddTest.map(s -> s.toUpperCase());
 	}
 	
 	
