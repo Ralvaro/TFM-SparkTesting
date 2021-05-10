@@ -131,7 +131,7 @@ public class TestApp {
 	 * Test para comprobar el mal funcionamiento de una funcion <b>reduce()</b> de tipo <i>Integer</i>.
 	 * Se usa una resta.
 	 */
-	@Test
+	@Test(expected=AssertionError.class)
 	public void testFailReduceInteger() {
 
 		JavaRDD<Integer> rdd = sc.parallelize(integerList);
@@ -164,7 +164,7 @@ public class TestApp {
 	 * Test para comprobar el mal funcionamiento de una funcion <b>reduce()</b> de tipo <i>Double</i>.
 	 * Se usa una resta.
 	 */
-	@Test
+	@Test(expected=AssertionError.class)
 	public void testFailReduceDouble() {
 		
 		JavaDoubleRDD rdd = sc.parallelizeDoubles(doubleList);
@@ -178,7 +178,7 @@ public class TestApp {
 	 * Test para comprobar el mal funcionamiento de una funcion <b>reduce()</b> de tipo <i>String</i>.
 	 * Se usa una concatenacion de letras.
 	 */
-	@Test
+	@Test(expected=AssertionError.class)
 	public void testFailReduceString() {
 
 		JavaRDD<String> rdd = sc.parallelize(lettersList);
@@ -210,7 +210,7 @@ public class TestApp {
 	 * Test para comprobar el mal funcionamiento de una funcion <b>reduceByKey()</b> de tipo <i>Integer</i>.
 	 * Se usa una resta.
 	 */
-	@Test
+	@Test(expected=AssertionError.class)
 	public void testFailReduceByKey() {
 		
 		JavaPairRDD<String, Integer> rdd = sc.parallelizePairs(tupleList);
@@ -236,6 +236,4 @@ public class TestApp {
 		rddTest.mapToPair(s -> new Tuple2<String, Integer>(s, 1));
 	}
 	
-	
-
 }
