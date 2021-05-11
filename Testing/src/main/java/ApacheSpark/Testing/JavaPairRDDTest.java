@@ -20,6 +20,11 @@ public class JavaPairRDDTest<K, V> extends JavaPairRDD<K, V> {
 	private static final long serialVersionUID = 1L;
 	
 	/**
+	 * Constante para determinar el numero maximo de particiones de un RDD (99999 por defecto).
+	 */
+	private int maxNumPartitions = 99999;
+	
+	/**
 	 * Constante para determinar el numero de repeticiones (10 por defecto).
 	 */
 	private int numRepetitions = 10;
@@ -30,16 +35,27 @@ public class JavaPairRDDTest<K, V> extends JavaPairRDD<K, V> {
 	private Random rand = new Random(12345);
 	
 	/**
-	 * Constante para determinar el numero maximo de particiones de un RDD.
-	 */
-	private static final int MAX_NUM_PARTITIONS = 99999;
-	
-	/**
 	 * Constructor dado un <b>JavaPairRDD</b>.
 	 * @param rdd
 	 */
 	public JavaPairRDDTest(JavaPairRDD<K, V> rdd) {
 		super(rdd.rdd(), rdd.kClassTag(), rdd.vClassTag());
+	}
+	
+	/**
+	 * Metodo para obtener el numero maximo de particiones permitidas.
+	 * @return
+	 */
+	public int getMaxNumPartitions() {
+		return maxNumPartitions;
+	}
+
+	/**
+	 * Metodo para establecer el numero maximo de particiones permitidas.
+	 * @param maxNumPartitions
+	 */
+	public void setMaxNumPartitions(int maxNumPartitions) {
+		this.maxNumPartitions = maxNumPartitions;
 	}
 	
 	/**
@@ -89,7 +105,7 @@ public class JavaPairRDDTest<K, V> extends JavaPairRDD<K, V> {
 		JavaPairRDD<K, V> resultToCompare = pairRDD.coalesce(1, false).reduceByKey(f).sortByKey();
 		Assert.assertEquals(result.collect(), resultToCompare.collect());
 		
-		resultToCompare = pairRDD.coalesce(MAX_NUM_PARTITIONS, false).reduceByKey(f).sortByKey();
+		resultToCompare = pairRDD.coalesce(maxNumPartitions, false).reduceByKey(f).sortByKey();
 		Assert.assertEquals(result.collect(), resultToCompare.collect());
 		
 		for (int i = 0; i < numRepetitions; i++) {
@@ -150,7 +166,7 @@ public class JavaPairRDDTest<K, V> extends JavaPairRDD<K, V> {
 		JavaPairRDD<K, V> resultToCompare = pairRDD.coalesce(1, false).reduceByKey(f, numPartitions).sortByKey();
 		Assert.assertEquals(result, resultToCompare);
 		
-		resultToCompare = pairRDD.coalesce(MAX_NUM_PARTITIONS, false).reduceByKey(f, numPartitions).sortByKey();
+		resultToCompare = pairRDD.coalesce(maxNumPartitions, false).reduceByKey(f, numPartitions).sortByKey();
 		Assert.assertEquals(result, resultToCompare);
 		
 		for (int i = 0; i < numRepetitions; i++) {
@@ -186,7 +202,7 @@ public class JavaPairRDDTest<K, V> extends JavaPairRDD<K, V> {
 		JavaPairRDD<K, V> resultToCompare = pairRDD.coalesce(1, false).reduceByKey(partitioner, f).sortByKey();
 		Assert.assertEquals(result, resultToCompare);
 		
-		resultToCompare = pairRDD.coalesce(MAX_NUM_PARTITIONS, false).reduceByKey(partitioner, f).sortByKey();
+		resultToCompare = pairRDD.coalesce(maxNumPartitions, false).reduceByKey(partitioner, f).sortByKey();
 		Assert.assertEquals(result, resultToCompare);
 		
 		for (int i = 0; i < numRepetitions; i++) {
@@ -222,7 +238,7 @@ public class JavaPairRDDTest<K, V> extends JavaPairRDD<K, V> {
 		JavaPairRDD<K, U> resultToCompare = pairRDD.coalesce(1, false).aggregateByKey(zeroValue, seqFunc, combFunc).sortByKey();
 		Assert.assertEquals(result, resultToCompare);
 		
-		resultToCompare = pairRDD.coalesce(MAX_NUM_PARTITIONS, false).aggregateByKey(zeroValue, seqFunc, combFunc).sortByKey();
+		resultToCompare = pairRDD.coalesce(maxNumPartitions, false).aggregateByKey(zeroValue, seqFunc, combFunc).sortByKey();
 		Assert.assertEquals(result, resultToCompare);
 		
 		for (int i = 0; i < numRepetitions; i++) {
@@ -258,7 +274,7 @@ public class JavaPairRDDTest<K, V> extends JavaPairRDD<K, V> {
 		JavaPairRDD<K, U> resultToCompare = pairRDD.coalesce(1, false).aggregateByKey(zeroValue, numPartitions, seqFunc, combFunc).sortByKey();
 		Assert.assertEquals(result, resultToCompare);
 		
-		resultToCompare = pairRDD.coalesce(MAX_NUM_PARTITIONS, false).aggregateByKey(zeroValue, numPartitions, seqFunc, combFunc).sortByKey();
+		resultToCompare = pairRDD.coalesce(maxNumPartitions, false).aggregateByKey(zeroValue, numPartitions, seqFunc, combFunc).sortByKey();
 		Assert.assertEquals(result, resultToCompare);
 		
 		for (int i = 0; i < numRepetitions; i++) {
@@ -294,7 +310,7 @@ public class JavaPairRDDTest<K, V> extends JavaPairRDD<K, V> {
 		JavaPairRDD<K, U> resultToCompare = pairRDD.coalesce(1, false).aggregateByKey(zeroValue, partitioner, seqFunc, combFunc).sortByKey();
 		Assert.assertEquals(result, resultToCompare);
 		
-		resultToCompare = pairRDD.coalesce(MAX_NUM_PARTITIONS, false).aggregateByKey(zeroValue, partitioner, seqFunc, combFunc).sortByKey();
+		resultToCompare = pairRDD.coalesce(maxNumPartitions, false).aggregateByKey(zeroValue, partitioner, seqFunc, combFunc).sortByKey();
 		Assert.assertEquals(result, resultToCompare);
 		
 		for (int i = 0; i < numRepetitions; i++) {

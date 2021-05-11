@@ -236,4 +236,20 @@ public class TestApp {
 		rddTest.mapToPair(s -> new Tuple2<String, Integer>(s, 1));
 	}
 	
+	private static final String VALID_WORD_PATTERN = "/\\b($word)\\b/i";
+	
+	@Test
+	public void test1() {
+		
+		JavaPairRDD<String, Integer> wordCount = sc.textFile("words.txt")
+				.flatMap(s -> Arrays.asList(s.split(" ")).iterator())
+				.filter(s -> s.matches(VALID_WORD_PATTERN))
+				.mapToPair(t -> new Tuple2<String, Integer>(t, 1))
+				.reduceByKey((x, y) -> x + y);
+	
+		List<Tuple2<String, Integer>> result = wordCount.collect();
+
+		System.out.println(wordCount.toDebugString());
+	}
+	
 }

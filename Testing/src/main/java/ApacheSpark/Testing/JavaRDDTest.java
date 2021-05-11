@@ -24,6 +24,16 @@ import scala.reflect.ClassTag;
 public class JavaRDDTest<T> extends JavaRDD<T> {
 	
 	/**
+	 * ID Serial por defecto.
+	 */
+	private static final long serialVersionUID = 1L;
+	
+	/**
+	 * Constante para determinar el numero maximo de particiones de un RDD (99999 por defecto).
+	 */
+	private int maxNumPartitions = 99999;
+
+	/**
 	 * Constante para determinar el numero de repetitiones.
 	 */
 	private int numRepetitions = 10;
@@ -34,14 +44,37 @@ public class JavaRDDTest<T> extends JavaRDD<T> {
 	private Random rand = new Random(12345);
 	
 	/**
-	 * Constante para determinar el numero maximo de particiones de un RDD.
+	 * Constructor dado un <b>RDD</b> y su <b>ClassTag</b>.
+	 * @param rdd (RDD).
+	 * @param classTag (ClassTagg).
 	 */
-	private static final int MAX_NUM_PARTITIONS = 99999;
+	public JavaRDDTest(RDD<T> rdd, ClassTag<T> classTag) {
+		super(rdd, classTag);
+	}
 	
 	/**
-	 * ID Serial por defecto.
+	 * Constructor dado un JavaRDD.
+	 * @param rdd (JavaRDD).
 	 */
-	private static final long serialVersionUID = 1L;
+	public JavaRDDTest(JavaRDD<T> rdd) {
+		super(rdd.rdd(), rdd.classTag());
+	}
+	
+	/**
+	 * Metodo para obtener el numero maximo de particiones permitidas.
+	 * @return
+	 */
+	public int getMaxNumPartitions() {
+		return maxNumPartitions;
+	}
+
+	/**
+	 * Metodo para establecer el numero maximo de particiones permitidas.
+	 * @param maxNumPartitions
+	 */
+	public void setMaxNumPartitions(int maxNumPartitions) {
+		this.maxNumPartitions = maxNumPartitions;
+	}
 	
 	/**
 	 * Metodo para obtener el numero de repeticiones.
@@ -65,23 +98,6 @@ public class JavaRDDTest<T> extends JavaRDD<T> {
 	 */
 	public void setRand(long seed) {
 		this.rand.setSeed(seed);
-	}
-
-	/**
-	 * Constructor dado un <b>RDD</b> y su <b>ClassTag</b>.
-	 * @param rdd (RDD).
-	 * @param classTag (ClassTagg).
-	 */
-	public JavaRDDTest(RDD<T> rdd, ClassTag<T> classTag) {
-		super(rdd, classTag);
-	}
-	
-	/**
-	 * Constructor dado un JavaRDD.
-	 * @param rdd (JavaRDD).
-	 */
-	public JavaRDDTest(JavaRDD<T> rdd) {
-		super(rdd.rdd(), rdd.classTag());
 	}
 	
 	/**
@@ -108,7 +124,7 @@ public class JavaRDDTest<T> extends JavaRDD<T> {
 		T resultToCompare = this.rdd().toJavaRDD().coalesce(1, false).reduce(function);
 		Assert.assertEquals(result, resultToCompare);
 		
-		resultToCompare = this.rdd().toJavaRDD().coalesce(MAX_NUM_PARTITIONS, false).reduce(function);
+		resultToCompare = this.rdd().toJavaRDD().coalesce(maxNumPartitions, false).reduce(function);
 		Assert.assertEquals(result, resultToCompare);
 		
 		for (int i = 0; i < numRepetitions; i++) {
@@ -163,7 +179,7 @@ public class JavaRDDTest<T> extends JavaRDD<T> {
 		T resultToCompare = this.rdd().toJavaRDD().coalesce(1, false).treeReduce(f);
 		Assert.assertEquals(result, resultToCompare);
 		
-		resultToCompare = this.rdd().toJavaRDD().coalesce(MAX_NUM_PARTITIONS, false).treeReduce(f);
+		resultToCompare = this.rdd().toJavaRDD().coalesce(maxNumPartitions, false).treeReduce(f);
 		Assert.assertEquals(result, resultToCompare);
 		
 		for (int i = 0; i < numRepetitions; i++) {

@@ -27,6 +27,11 @@ public class JavaDoubleRDDTest extends JavaDoubleRDD {
 	private static final long serialVersionUID = 1L;
 	
 	/**
+	 * Constante para determinar el numero maximo de particiones de un RDD (99999 por defecto).
+	 */
+	private int maxNumPartitions = 99999;
+	
+	/**
 	 * Constante para determinar el numero de repeticiones (10 por defecto).
 	 */
 	private int numRepetitions = 10;
@@ -35,11 +40,6 @@ public class JavaDoubleRDDTest extends JavaDoubleRDD {
 	 * Objeto para obtener numeros aleatorios (12345 semilla por defecto).
 	 */
 	private Random rand = new Random(12345);
-	
-	/**
-	 * Constante para determinar el numero maximo de particiones de un RDD.
-	 */
-	private static final int MAX_NUM_PARTITIONS = 99999;
 
 	/**
 	 * Constructor dado un RDD.
@@ -55,6 +55,22 @@ public class JavaDoubleRDDTest extends JavaDoubleRDD {
 	 */
 	public JavaDoubleRDDTest(JavaDoubleRDD rdd) {
 		super(rdd.srdd());
+	}
+	
+	/**
+	 * Metodo para obtener el numero maximo de particiones permitidas.
+	 * @return
+	 */
+	public int getMaxNumPartitions() {
+		return maxNumPartitions;
+	}
+
+	/**
+	 * Metodo para establecer el numero maximo de particiones permitidas.
+	 * @param maxNumPartitions
+	 */
+	public void setMaxNumPartitions(int maxNumPartitions) {
+		this.maxNumPartitions = maxNumPartitions;
 	}
 	
 	/**
@@ -101,7 +117,7 @@ public class JavaDoubleRDDTest extends JavaDoubleRDD {
 		Double resultToCompare = this.rdd().toJavaRDD().coalesce(1, false).reduce(f);
 		Assert.assertEquals(result, resultToCompare);
 		
-		resultToCompare = this.rdd().toJavaRDD().coalesce(MAX_NUM_PARTITIONS, false).reduce(f);
+		resultToCompare = this.rdd().toJavaRDD().coalesce(maxNumPartitions, false).reduce(f);
 		Assert.assertEquals(result, resultToCompare);
 		
 		for (int i = 0; i < numRepetitions; i++) {
@@ -151,7 +167,7 @@ public class JavaDoubleRDDTest extends JavaDoubleRDD {
 		Double resultToCompare = this.rdd().toJavaRDD().coalesce(1, false).treeReduce(f);
 		Assert.assertEquals(result, resultToCompare);
 		
-		resultToCompare = this.rdd().toJavaRDD().coalesce(MAX_NUM_PARTITIONS, false).treeReduce(f);
+		resultToCompare = this.rdd().toJavaRDD().coalesce(maxNumPartitions, false).treeReduce(f);
 		Assert.assertEquals(result, resultToCompare);
 		
 		for (int i = 0; i < numRepetitions; i++) {
