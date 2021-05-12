@@ -120,10 +120,10 @@ public class TestApp {
 		JavaRDDTest<Integer> rddTest = new JavaRDDTest<>(rdd);
 
 		// Sumar los elementos
-		rddTest.reduce((x, y) -> x + y);
+		System.out.println(rddTest.reduce((x, y) -> x + y));
 		
 		// Multiplicar los elementos
-		rddTest.reduce((x, y) ->  x * y);
+//		System.out.println(rddTest.reduce((x, y) ->  x * y));
 
 	}
 
@@ -232,24 +232,6 @@ public class TestApp {
 		JavaRDDTest<String> rddTest = new JavaRDDTest<>(rdd);
 		
 		rddTest.map(s -> s.toUpperCase());
-		
-		rddTest.mapToPair(s -> new Tuple2<String, Integer>(s, 1));
-	}
-	
-	private static final String VALID_WORD_PATTERN = "/\\b($word)\\b/i";
-	
-	@Test
-	public void test1() {
-		
-		JavaPairRDD<String, Integer> wordCount = sc.textFile("words.txt")
-				.flatMap(s -> Arrays.asList(s.split(" ")).iterator())
-				.filter(s -> s.matches(VALID_WORD_PATTERN))
-				.mapToPair(t -> new Tuple2<String, Integer>(t, 1))
-				.reduceByKey((x, y) -> x + y);
-	
-		List<Tuple2<String, Integer>> result = wordCount.collect();
-
-		System.out.println(wordCount.toDebugString());
 	}
 	
 }

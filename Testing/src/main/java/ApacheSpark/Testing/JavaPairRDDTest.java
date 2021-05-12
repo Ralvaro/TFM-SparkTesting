@@ -20,9 +20,9 @@ public class JavaPairRDDTest<K, V> extends JavaPairRDD<K, V> {
 	private static final long serialVersionUID = 1L;
 	
 	/**
-	 * Constante para determinar el numero maximo de particiones de un RDD (99999 por defecto).
+	 * Constante para determinar el numero maximo de particiones de un RDD (MAX_VALUE por defecto).
 	 */
-	private int maxNumPartitions = 99999;
+	private int maxNumPartitions = Integer.MAX_VALUE;
 	
 	/**
 	 * Constante para determinar el numero de repeticiones (10 por defecto).
@@ -91,15 +91,7 @@ public class JavaPairRDDTest<K, V> extends JavaPairRDD<K, V> {
 	public JavaPairRDD<K, V> reduceByKey(Function2<V, V, V> f) {
 		
 		JavaPairRDD<K, V> pairRDD = this.cache();
-		
-		// Se comprueba que sea idempotente ejecutando multiples veces
 		JavaPairRDD<K, V> result = pairRDD.reduceByKey(f).sortByKey().cache();
-		
-		for (int i = 0; i < numRepetitions; i++) {
-			
-			JavaPairRDD<K, V> resultToCompare = pairRDD.reduceByKey(f).sortByKey();
-			Assert.assertEquals(result.collect(), resultToCompare.collect());
-		}
 		
 		// Se comprueba que sea asociativa cambiando el numero de particiones
 		JavaPairRDD<K, V> resultToCompare = pairRDD.coalesce(1, false).reduceByKey(f).sortByKey();
@@ -110,34 +102,20 @@ public class JavaPairRDDTest<K, V> extends JavaPairRDD<K, V> {
 		
 		for (int i = 0; i < numRepetitions; i++) {
 			
-			resultToCompare = pairRDD.coalesce(rand.nextInt(this.getNumPartitions())+1, false).reduceByKey(f).sortByKey();
+			// Se comprueba que sea idempotente ejecutando multiples veces con el mismo resultado
+			resultToCompare = pairRDD.reduceByKey(f).sortByKey();
+			Assert.assertEquals(result.collect(), resultToCompare.collect());
+			
+			// Se comprueba que sea asociativa cambiando el numero de particiones
+			int randomNumber = (Math.abs(rand.nextInt()) % this.rdd().getNumPartitions()) + 1;
+			
+			resultToCompare = pairRDD.coalesce(randomNumber, false).reduceByKey(f).sortByKey();
+			Assert.assertEquals(result.collect(), resultToCompare.collect());
+			
+			// Se comprueba la propiedad conmutativa cambiando el orden de las particiones
+			resultToCompare = pairRDD.coalesce(this.rdd().getNumPartitions(), true).reduceByKey(f).sortByKey();
 			Assert.assertEquals(result.collect(), resultToCompare.collect());
 		}
-		
-//		// Se cambia el numero de particiones
-//		JavaPairRDD<K, V> rdd1 = this.coalesce(1, false);
-//		JavaPairRDD<K, V> rdd2 = this.coalesce(2, false);
-//		JavaPairRDD<K, V> rdd3 = this.coalesce(3, false);
-//		
-//		JavaPairRDD<K, V> result = rdd1.reduceByKey(function).sortByKey();
-//		JavaPairRDD<K, V> result2 = rdd2.reduceByKey(function).sortByKey();
-//		JavaPairRDD<K, V> result3 = rdd3.reduceByKey(function).sortByKey();
-//		
-//		List<Tuple2<K, V>> collect1 = result.collect();
-//		List<Tuple2<K, V>> collect2 = result2.collect();
-//		List<Tuple2<K, V>> collect3 = result3.collect();
-//		
-//		Assert.assertEquals(collect1, collect2);
-//		Assert.assertEquals(collect1, collect3);
-//		
-//		// Se cambia el orden las particiones (mismas particiones que rdd3 pero con los datos desordenados)
-//		JavaPairRDD<K, V> rdd4 = this.coalesce(3, true);
-//		JavaPairRDD<K, V> result4 = rdd4.reduceByKey(function).sortByKey();
-//		
-//		// Se comprueban que los resultados sean iguales
-//		List<Tuple2<K, V>> collect4 = result4.collect();
-//		
-//		Assert.assertEquals(collect3, collect4);
 		
 		return result;
 	}
@@ -152,27 +130,30 @@ public class JavaPairRDDTest<K, V> extends JavaPairRDD<K, V> {
 	public JavaPairRDD<K, V> reduceByKey(Function2<V, V, V> f, int numPartitions) {
 		
 		JavaPairRDD<K, V> pairRDD = this.cache();
-		
-		// Se comprueba que sea idempotente ejecutando multiples veces
 		JavaPairRDD<K, V> result = pairRDD.reduceByKey(f, numPartitions).sortByKey().cache();
-		
-		for (int i = 0; i < numRepetitions; i++) {
-			
-			JavaPairRDD<K, V> resultToCompare = pairRDD.reduceByKey(f, numPartitions).sortByKey();
-			Assert.assertEquals(result.collect(), resultToCompare.collect());
-		}
 		
 		// Se comprueba que sea asociativa cambiando el numero de particiones
 		JavaPairRDD<K, V> resultToCompare = pairRDD.coalesce(1, false).reduceByKey(f, numPartitions).sortByKey();
-		Assert.assertEquals(result, resultToCompare);
+		Assert.assertEquals(result.collect(), resultToCompare.collect());
 		
 		resultToCompare = pairRDD.coalesce(maxNumPartitions, false).reduceByKey(f, numPartitions).sortByKey();
-		Assert.assertEquals(result, resultToCompare);
+		Assert.assertEquals(result.collect(), resultToCompare.collect());
 		
 		for (int i = 0; i < numRepetitions; i++) {
 			
-			resultToCompare = pairRDD.coalesce(rand.nextInt(this.getNumPartitions())+1, false).reduceByKey(f, numPartitions).sortByKey();
-			Assert.assertEquals(result, resultToCompare);
+			// Se comprueba que sea idempotente ejecutando multiples veces con el mismo resultado
+			resultToCompare = pairRDD.reduceByKey(f, numPartitions).sortByKey();
+			Assert.assertEquals(result.collect(), resultToCompare.collect());
+			
+			// Se comprueba que sea asociativa cambiando el numero de particiones
+			int randomNumber = (Math.abs(rand.nextInt()) % this.rdd().getNumPartitions()) + 1;
+			
+			resultToCompare = pairRDD.coalesce(randomNumber, false).reduceByKey(f, numPartitions).sortByKey();
+			Assert.assertEquals(result.collect(), resultToCompare.collect());
+			
+			// Se comprueba la propiedad conmutativa cambiando el orden de las particiones
+			resultToCompare = pairRDD.coalesce(this.rdd().getNumPartitions(), true).reduceByKey(f, numPartitions).sortByKey();
+			Assert.assertEquals(result.collect(), resultToCompare.collect());
 		}
 		
 		return result;
@@ -188,27 +169,30 @@ public class JavaPairRDDTest<K, V> extends JavaPairRDD<K, V> {
 	public JavaPairRDD<K, V> reduceByKey(Partitioner partitioner, Function2<V, V, V> f) {
 		
 		JavaPairRDD<K, V> pairRDD = this.cache();
-		
-		// Se comprueba que sea idempotente ejecutando multiples veces
 		JavaPairRDD<K, V> result = pairRDD.reduceByKey(partitioner, f).sortByKey().cache();
-		
-		for (int i = 0; i < numRepetitions; i++) {
-			
-			JavaPairRDD<K, V> resultToCompare = pairRDD.reduceByKey(partitioner, f).sortByKey();
-			Assert.assertEquals(result.collect(), resultToCompare.collect());
-		}
 		
 		// Se comprueba que sea asociativa cambiando el numero de particiones
 		JavaPairRDD<K, V> resultToCompare = pairRDD.coalesce(1, false).reduceByKey(partitioner, f).sortByKey();
-		Assert.assertEquals(result, resultToCompare);
+		Assert.assertEquals(result.collect(), resultToCompare.collect());
 		
 		resultToCompare = pairRDD.coalesce(maxNumPartitions, false).reduceByKey(partitioner, f).sortByKey();
-		Assert.assertEquals(result, resultToCompare);
+		Assert.assertEquals(result.collect(), resultToCompare.collect());
 		
 		for (int i = 0; i < numRepetitions; i++) {
 			
-			resultToCompare = pairRDD.coalesce(rand.nextInt(this.getNumPartitions())+1, false).reduceByKey(partitioner, f).sortByKey();
-			Assert.assertEquals(result, resultToCompare);
+			// Se comprueba que sea idempotente ejecutando multiples veces con el mismo resultado
+			resultToCompare = pairRDD.reduceByKey(partitioner, f).sortByKey();
+			Assert.assertEquals(result.collect(), resultToCompare.collect());
+			
+			// Se comprueba que sea asociativa cambiando el numero de particiones
+			int randomNumber = (Math.abs(rand.nextInt()) % this.rdd().getNumPartitions()) + 1;
+			
+			resultToCompare = pairRDD.coalesce(randomNumber, false).reduceByKey(partitioner, f).sortByKey();
+			Assert.assertEquals(result.collect(), resultToCompare.collect());
+			
+			// Se comprueba la propiedad conmutativa cambiando el orden de las particiones
+			resultToCompare = pairRDD.coalesce(this.rdd().getNumPartitions(), true).reduceByKey(partitioner, f).sortByKey();
+			Assert.assertEquals(result.collect(), resultToCompare.collect());
 		}
 		
 		return result;
@@ -224,15 +208,7 @@ public class JavaPairRDDTest<K, V> extends JavaPairRDD<K, V> {
 	public <U> JavaPairRDD<K, U> aggregateByKey(U zeroValue, Function2<U, V, U> seqFunc, Function2<U, U, U> combFunc) {
 		
 		JavaPairRDD<K, V> pairRDD = this.cache();
-		
-		// Se comprueba que sea idempotente ejecutando multiples veces
 		JavaPairRDD<K, U> result = pairRDD.aggregateByKey(zeroValue, seqFunc, combFunc).sortByKey().cache();
-		
-		for (int i = 0; i < numRepetitions; i++) {
-			
-			JavaPairRDD<K, U> resultToCompare = pairRDD.aggregateByKey(zeroValue, seqFunc, combFunc).sortByKey();
-			Assert.assertEquals(result.collect(), resultToCompare.collect());
-		}
 		
 		// Se comprueba que sea asociativa cambiando el numero de particiones
 		JavaPairRDD<K, U> resultToCompare = pairRDD.coalesce(1, false).aggregateByKey(zeroValue, seqFunc, combFunc).sortByKey();
@@ -243,7 +219,18 @@ public class JavaPairRDDTest<K, V> extends JavaPairRDD<K, V> {
 		
 		for (int i = 0; i < numRepetitions; i++) {
 			
-			resultToCompare = pairRDD.coalesce(rand.nextInt(this.getNumPartitions())+1, false).aggregateByKey(zeroValue, seqFunc, combFunc).sortByKey();
+			// Se comprueba que sea idempotente ejecutando multiples veces con el mismo resultado
+			resultToCompare = pairRDD.aggregateByKey(zeroValue, seqFunc, combFunc).sortByKey();
+			Assert.assertEquals(result.collect(), resultToCompare.collect());
+			
+			// Se comprueba que sea asociativa cambiando el numero de particiones
+			int randomNumber = (Math.abs(rand.nextInt()) % this.rdd().getNumPartitions()) + 1;
+			
+			resultToCompare = pairRDD.coalesce(randomNumber, false).aggregateByKey(zeroValue, seqFunc, combFunc).sortByKey();
+			Assert.assertEquals(result, resultToCompare);
+			
+			// Se comprueba la propiedad conmutativa cambiando el orden de las particiones
+			resultToCompare = pairRDD.coalesce(this.rdd().getNumPartitions(), true).aggregateByKey(zeroValue, seqFunc, combFunc).sortByKey();
 			Assert.assertEquals(result, resultToCompare);
 		}
 		
@@ -260,15 +247,7 @@ public class JavaPairRDDTest<K, V> extends JavaPairRDD<K, V> {
 	public <U> JavaPairRDD<K, U> aggregateByKey(U zeroValue, int numPartitions, Function2<U, V, U> seqFunc, Function2<U, U, U> combFunc) {
 		
 		JavaPairRDD<K, V> pairRDD = this.cache();
-		
-		// Se comprueba que sea idempotente ejecutando multiples veces
 		JavaPairRDD<K, U> result = pairRDD.aggregateByKey(zeroValue, numPartitions, seqFunc, combFunc).sortByKey().cache();
-		
-		for (int i = 0; i < numRepetitions; i++) {
-			
-			JavaPairRDD<K, U> resultToCompare = pairRDD.aggregateByKey(zeroValue, numPartitions, seqFunc, combFunc).sortByKey();
-			Assert.assertEquals(result.collect(), resultToCompare.collect());
-		}
 		
 		// Se comprueba que sea asociativa cambiando el numero de particiones
 		JavaPairRDD<K, U> resultToCompare = pairRDD.coalesce(1, false).aggregateByKey(zeroValue, numPartitions, seqFunc, combFunc).sortByKey();
@@ -279,7 +258,18 @@ public class JavaPairRDDTest<K, V> extends JavaPairRDD<K, V> {
 		
 		for (int i = 0; i < numRepetitions; i++) {
 			
-			resultToCompare = pairRDD.coalesce(rand.nextInt(this.getNumPartitions())+1, false).aggregateByKey(zeroValue, numPartitions, seqFunc, combFunc).sortByKey();
+			// Se comprueba que sea idempotente ejecutando multiples veces con el mismo resultado
+			resultToCompare = pairRDD.aggregateByKey(zeroValue, numPartitions, seqFunc, combFunc).sortByKey();
+			Assert.assertEquals(result.collect(), resultToCompare.collect());
+			
+			// Se comprueba que sea asociativa cambiando el numero de particiones
+			int randomNumber = (Math.abs(rand.nextInt()) % this.rdd().getNumPartitions()) + 1;
+			
+			resultToCompare = pairRDD.coalesce(randomNumber, false).aggregateByKey(zeroValue, numPartitions, seqFunc, combFunc).sortByKey();
+			Assert.assertEquals(result, resultToCompare);
+			
+			// Se comprueba la propiedad conmutativa cambiando el orden de las particiones
+			resultToCompare = pairRDD.coalesce(this.rdd().getNumPartitions(), true).aggregateByKey(zeroValue, numPartitions, seqFunc, combFunc).sortByKey();
 			Assert.assertEquals(result, resultToCompare);
 		}
 		
@@ -296,15 +286,7 @@ public class JavaPairRDDTest<K, V> extends JavaPairRDD<K, V> {
 	public <U> JavaPairRDD<K, U> aggregateByKey(U zeroValue, Partitioner partitioner, Function2<U, V, U> seqFunc, Function2<U, U, U> combFunc) {
 		
 		JavaPairRDD<K, V> pairRDD = this.cache();
-		
-		// Se comprueba que sea idempotente ejecutando multiples veces
 		JavaPairRDD<K, U> result = pairRDD.aggregateByKey(zeroValue, partitioner, seqFunc, combFunc).sortByKey().cache();
-		
-		for (int i = 0; i < numRepetitions; i++) {
-			
-			JavaPairRDD<K, U> resultToCompare = pairRDD.aggregateByKey(zeroValue, partitioner, seqFunc, combFunc).sortByKey();
-			Assert.assertEquals(result.collect(), resultToCompare.collect());
-		}
 		
 		// Se comprueba que sea asociativa cambiando el numero de particiones
 		JavaPairRDD<K, U> resultToCompare = pairRDD.coalesce(1, false).aggregateByKey(zeroValue, partitioner, seqFunc, combFunc).sortByKey();
@@ -315,7 +297,18 @@ public class JavaPairRDDTest<K, V> extends JavaPairRDD<K, V> {
 		
 		for (int i = 0; i < numRepetitions; i++) {
 			
-			resultToCompare = pairRDD.coalesce(rand.nextInt(this.getNumPartitions())+1, false).aggregateByKey(zeroValue, partitioner, seqFunc, combFunc).sortByKey();
+			// Se comprueba que sea idempotente ejecutando multiples veces con el mismo resultado
+			resultToCompare = pairRDD.aggregateByKey(zeroValue, partitioner, seqFunc, combFunc).sortByKey();
+			Assert.assertEquals(result.collect(), resultToCompare.collect());
+			
+			// Se comprueba que sea asociativa cambiando el numero de particiones
+			int randomNumber = (Math.abs(rand.nextInt()) % this.rdd().getNumPartitions()) + 1;
+			
+			resultToCompare = pairRDD.coalesce(randomNumber, false).aggregateByKey(zeroValue, partitioner, seqFunc, combFunc).sortByKey();
+			Assert.assertEquals(result, resultToCompare);
+			
+			// Se comprueba la propiedad conmutativa cambiando el orden de las particiones
+			resultToCompare = pairRDD.coalesce(this.rdd().getNumPartitions(), true).aggregateByKey(zeroValue, partitioner, seqFunc, combFunc).sortByKey();
 			Assert.assertEquals(result, resultToCompare);
 		}
 		

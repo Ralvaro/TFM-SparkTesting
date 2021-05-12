@@ -29,9 +29,9 @@ public class JavaRDDTest<T> extends JavaRDD<T> {
 	private static final long serialVersionUID = 1L;
 	
 	/**
-	 * Constante para determinar el numero maximo de particiones de un RDD (99999 por defecto).
+	 * Constante para determinar el numero maximo de particiones de un RDD (MAX_VALUE por defecto).
 	 */
-	private int maxNumPartitions = 99999;
+	private int maxNumPartitions = Integer.MAX_VALUE;
 
 	/**
 	 * Constante para determinar el numero de repetitiones.
@@ -105,53 +105,38 @@ public class JavaRDDTest<T> extends JavaRDD<T> {
 	 *  - Comprueba que sea idempotente.
 	 *  - Comprueba que sea asociativa.
 	 *  - Comprueba que sea conmutativa.
-	 * @param function (Function2<T, T, T>) - Funcion reduce que se desea testear.
+	 * @param f (Function2<T, T, T>) - Funcion reduce que se desea testear.
 	 * @return T - Resultado de la operacion.
 	 */
-	public T reduce(Function2<T, T, T> function) {
+	public T reduce(Function2<T, T, T> f) {
 		
-		
-		T result = this.rdd().toJavaRDD().reduce(function);
-		
-		for (int i = 0; i < numRepetitions; i++) {
-			
-			// Se comprueba que sea idempotente ejecutando multiples veces
-			T resultToCompare = this.rdd().toJavaRDD().reduce(function);
-			Assert.assertEquals(result, resultToCompare);
-		}
+		T result = this.rdd().toJavaRDD().reduce(f);
+		T resultToCompare = null;
 		
 		// Se comprueba que sea asociativa cambiando el numero de particiones
-		T resultToCompare = this.rdd().toJavaRDD().coalesce(1, false).reduce(function);
+		resultToCompare = this.rdd().toJavaRDD().coalesce(1, false).reduce(f);
 		Assert.assertEquals(result, resultToCompare);
 		
-		resultToCompare = this.rdd().toJavaRDD().coalesce(maxNumPartitions, false).reduce(function);
+		resultToCompare = this.rdd().toJavaRDD().coalesce(maxNumPartitions, false).reduce(f);
 		Assert.assertEquals(result, resultToCompare);
 		
 		for (int i = 0; i < numRepetitions; i++) {
 			
-			resultToCompare = this.rdd().toJavaRDD().coalesce(rand.nextInt(this.getNumPartitions())+1, false).reduce(function);
+			// Se comprueba que sea idempotente ejecutando multiples veces con el mismo resultado
+			resultToCompare = this.rdd().toJavaRDD().reduce(f);
 			Assert.assertEquals(result, resultToCompare);
+			
+			// Se comprueba que sea asociativa cambiando el numero de particiones
+			int randomNumber = (Math.abs(rand.nextInt()) % this.rdd().getNumPartitions()) + 1;
+			
+			resultToCompare = this.rdd().toJavaRDD().coalesce(randomNumber, false).reduce(f);
+			Assert.assertEquals(result, resultToCompare);
+			
+			// Se comprueba la propiedad conmutativa cambiando el orden de las particiones
+			resultToCompare = this.rdd().toJavaRDD().coalesce(this.rdd().getNumPartitions(), true).reduce(f);
+			Assert.assertEquals(result, resultToCompare);
+			
 		}
-
-		
-//		// Se cambia el numero de particiones
-//		JavaRDD<T> rdd1 = this.coalesce(1, false);
-//		JavaRDD<T> rdd2 = this.coalesce(2, false);
-//		JavaRDD<T> rdd3 = this.coalesce(3, false);
-//		
-//		T result = rdd1.reduce(function);
-//		T result2 = rdd2.reduce(function);
-//		T result3 = rdd3.reduce(function);
-//		
-//		Assert.assertEquals(result, result2);
-//		Assert.assertEquals(result, result3);
-//		
-//		// Se cambia el orden las particiones (mismas particiones que rdd3 pero con los datos desordenados)
-//		JavaRDD<T> rdd4 = this.coalesce(3, true);
-//		T result4 = rdd4.reduce(function);
-//		
-//		// Se comprueban que los resultados sean igual
-//		Assert.assertEquals(result3, result4);
 		
 		return result;
 	}
@@ -166,17 +151,11 @@ public class JavaRDDTest<T> extends JavaRDD<T> {
 	 */
 	public T treeReduce(Function2<T, T, T> f) {
 		
-		// Se comprueba que sea idempotente ejecutando multiples veces
-		T result = this.treeReduce(f);
-		
-		for (int i = 0; i < numRepetitions; i++) {
-			
-			T resultToCompare = this.treeReduce(f);
-			Assert.assertEquals(result, resultToCompare);
-		}
+		T result = this.rdd().toJavaRDD().treeReduce(f);
+		T resultToCompare = null;
 		
 		// Se comprueba que sea asociativa cambiando el numero de particiones
-		T resultToCompare = this.rdd().toJavaRDD().coalesce(1, false).treeReduce(f);
+		resultToCompare = this.rdd().toJavaRDD().coalesce(1, false).treeReduce(f);
 		Assert.assertEquals(result, resultToCompare);
 		
 		resultToCompare = this.rdd().toJavaRDD().coalesce(maxNumPartitions, false).treeReduce(f);
@@ -184,8 +163,20 @@ public class JavaRDDTest<T> extends JavaRDD<T> {
 		
 		for (int i = 0; i < numRepetitions; i++) {
 			
-			resultToCompare = this.rdd().toJavaRDD().coalesce(rand.nextInt(this.getNumPartitions())+1, false).treeReduce(f);
+			// Se comprueba que sea idempotente ejecutando multiples veces con el mismo resultado
+			resultToCompare = this.rdd().toJavaRDD().treeReduce(f);
 			Assert.assertEquals(result, resultToCompare);
+			
+			// Se comprueba que sea asociativa cambiando el numero de particiones
+			int randomNumber = (Math.abs(rand.nextInt()) % this.rdd().getNumPartitions()) + 1;
+			
+			resultToCompare = this.rdd().toJavaRDD().coalesce(randomNumber, false).treeReduce(f);
+			Assert.assertEquals(result, resultToCompare);
+			
+			// Se comprueba la propiedad conmutativa cambiando el orden de las particiones
+			resultToCompare = this.rdd().toJavaRDD().coalesce(this.rdd().getNumPartitions(), true).treeReduce(f);
+			Assert.assertEquals(result, resultToCompare);
+			
 		}
 		
 		return result;
