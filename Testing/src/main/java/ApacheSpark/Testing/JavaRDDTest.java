@@ -1,5 +1,6 @@
 package ApacheSpark.Testing;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
 
@@ -15,6 +16,7 @@ import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.rdd.RDD;
 import org.junit.Assert;
 
+import scala.collection.JavaConversions;
 import scala.reflect.ClassTag;
 
 /**
@@ -185,18 +187,30 @@ public class JavaRDDTest<T> extends JavaRDD<T> {
 	/**
 	 * Metodo que comprueba si una funcion de tipo <b>filter()</b>.
 	 *  - Comprueba que sea idempotente.
+	 *  - Comprueba que falle un nodo.
 	 * @param function (Function<T, Boolean>) - Funcion filter que se desea testear.
 	 * @return JavaRDD<T> - Resultado de la operacion.
 	 */
 	public JavaRDD<T> filter(Function<T, Boolean> function) {
 		
-		JavaRDD<T> result = this.filter(function).sortBy(f -> f, true, this.getNumPartitions()).cache();
+		JavaRDD<T> result = this.rdd().toJavaRDD().filter(function).sortBy(f -> f, true, this.getNumPartitions()).cache();
 		
 		for (int i = 0; i < numRepetitions; i++) {
 			
-			JavaRDD<T> resultToCompare = this.filter(function).sortBy(f -> f, true, this.getNumPartitions());
+			JavaRDD<T> resultToCompare = this.rdd().toJavaRDD().filter(function).sortBy(f -> f, true, this.getNumPartitions());
 			Assert.assertEquals(result.collect(), resultToCompare.collect());
 		}
+		
+		// Que un nodo aleatorio falle y se vuelva a ejecutar por separado
+		JavaRDD<T> randomPartitionRDD = getRandomPartition(this.rdd().toJavaRDD());
+		JavaRDD<T> subtracRDD = subtractRDDElements(randomPartitionRDD, this.rdd().toJavaRDD());
+		
+		JavaRDD<T> randomPartitionRDDResult = randomPartitionRDD.filter(function);
+		JavaRDD<T> subtracRDDResult = subtracRDD.filter(function);
+		
+		JavaRDD<T> unionResult = randomPartitionRDDResult.union(subtracRDDResult).sortBy(f -> f, true, subtracRDD.getNumPartitions());
+		
+		Assert.assertEquals(result.collect(), unionResult.collect());
 		
 		return result;
 	}
@@ -204,18 +218,30 @@ public class JavaRDDTest<T> extends JavaRDD<T> {
 	/**
 	 * Metodo que comprueba si una funcion de tipo <b>flatMap()</b>.
 	 *  - Comprueba que sea idempotente.
+	 *  - Comprueba que falle un nodo.
 	 * @param function (FlatMapFunction<T, U>) - Funcion flatMap que se desea testear.
 	 * @return JavaRDD<U> - Resultado de la operacion.
 	 */
 	public <U> JavaRDD<U> flatMap(FlatMapFunction<T, U> function) {
 		
-		JavaRDD<U> result = this.flatMap(function).sortBy(f -> f, true, this.getNumPartitions()).cache();
+		JavaRDD<U> result = this.rdd().toJavaRDD().flatMap(function).sortBy(f -> f, true, this.getNumPartitions()).cache();
 		
 		for (int i = 0; i < numRepetitions; i++) {
 			
-			JavaRDD<U> resultToCompare = this.flatMap(function).sortBy(f -> f, true, this.getNumPartitions());
+			JavaRDD<U> resultToCompare = this.rdd().toJavaRDD().flatMap(function).sortBy(f -> f, true, this.getNumPartitions());
 			Assert.assertEquals(result.collect(), resultToCompare.collect());
 		}
+		
+		// Que un nodo aleatorio falle y se vuelva a ejecutar por separado
+		JavaRDD<T> randomPartitionRDD = getRandomPartition(this.rdd().toJavaRDD());
+		JavaRDD<T> subtracRDD = subtractRDDElements(randomPartitionRDD, this.rdd().toJavaRDD());
+		
+		JavaRDD<U> randomPartitionRDDResult = randomPartitionRDD.flatMap(function);
+		JavaRDD<U> subtracRDDResult = subtracRDD.flatMap(function);
+		
+		JavaRDD<U> unionResult = randomPartitionRDDResult.union(subtracRDDResult).sortBy(f -> f, true, subtracRDD.getNumPartitions());
+		
+		Assert.assertEquals(result.collect(), unionResult.collect());
 		
 		return result;
 	}
@@ -438,6 +464,43 @@ public class JavaRDDTest<T> extends JavaRDD<T> {
 		}
 		
 		return result;
+	}
+	
+	/**
+	 * Metodo que crea un nuevo RDD de los elementos.
+	 * @param rdd1
+	 * @param rdd2
+	 * @return
+	 */
+	private JavaRDD<T> subtractRDDElements(JavaRDD<T> rdd1, JavaRDD<T> rdd2) {
+		
+		ArrayList<T> collectRDD1 = new ArrayList<T>(rdd1.collect());
+		ArrayList<T> collectRDD2 = new ArrayList<T>(rdd2.collect());
+		
+		for (T obj : collectRDD1) {
+			collectRDD2.remove(obj);
+		}
+		
+		int numPartitions = 1;
+		if (rdd2.getNumPartitions() != 1) {
+			numPartitions = rdd2.getNumPartitions() - 1;
+		}
+		
+		return this.context().parallelize(JavaConversions.asScalaBuffer(collectRDD2), numPartitions, this.classTag()).toJavaRDD();
+	}
+	
+	/**
+	 * Metodo para obtener un RDD con los elementos de una particion aleatoria de otro RDD.
+	 * @param rdd
+	 * @return
+	 */
+	private JavaRDD<T> getRandomPartition(JavaRDD<T> rdd) {
+		
+		int randomPartition = (Math.abs(rand.nextInt()) % rdd().getNumPartitions());
+		
+		ArrayList<T> collectRDD = new ArrayList<T> (rdd.glom().collect().get(randomPartition));
+		
+		return this.context().parallelize(JavaConversions.asScalaBuffer(collectRDD), 1, this.classTag()).toJavaRDD();
 	}
 
 }

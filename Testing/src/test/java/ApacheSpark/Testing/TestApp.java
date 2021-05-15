@@ -44,7 +44,6 @@ public class TestApp {
 	/**
 	 * Lista de palabras (String)
 	 */
-	@SuppressWarnings("unused")
 	private List<String> wordsList = null;
 	
 	/**
@@ -232,6 +231,34 @@ public class TestApp {
 		JavaRDDTest<String> rddTest = new JavaRDDTest<>(rdd);
 		
 		rddTest.map(s -> s.toUpperCase());
+	}
+	
+	/**
+	 * Test para comprobar el correcto funcionamiento de una funcion <b>filter()</b> de tipo <i>Integer</i>.
+	 * Se usa funcion para filtrar los numeros pares de una lista de enteros.
+	 */
+	@Test
+	public void testSuccessFilterInteger() {
+		
+		JavaRDD<Integer> rdd = sc.parallelize(integerList);
+		
+		JavaRDDTest<Integer> rddTest = new JavaRDDTest<>(rdd);
+		
+		rddTest.filter(n -> (n % 2) == 0);
+	}
+	
+	/**
+	 * Test para comprobar el correcto funcionamiento de una funcion <b>filter()</b> de tipo <i>String</i>.
+	 * Se usa funcion para filtrar las palabras que contienen la letra 'm'.
+	 */
+	@Test
+	public void testSuccessFilterString() {
+		
+		JavaRDD<String> rdd = sc.parallelize(wordsList);
+		
+		JavaRDDTest<String> rddTest = new JavaRDDTest<>(rdd);
+		
+		rddTest.filter(w -> w.contains("m"));
 	}
 	
 }
