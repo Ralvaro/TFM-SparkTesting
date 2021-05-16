@@ -104,9 +104,11 @@ public class JavaRDDTest<T> extends JavaRDD<T> {
 	
 	/**
 	 * Metodo que comprueba si una funcion de tipo <b>reduce()</b>.
-	 *  - Comprueba que sea idempotente.
-	 *  - Comprueba que sea asociativa.
-	 *  - Comprueba que sea conmutativa.
+	 * 	<ul>
+	 * 		<li>Comprueba que sea idempotente.</li>
+	 * 		<li>Comprueba que sea asociativa.</li>
+	 * 		<li>Comprueba que sea conmutativa.</li>
+	 * 	</ul>
 	 * @param f (Function2<T, T, T>) - Funcion reduce que se desea testear.
 	 * @return T - Resultado de la operacion.
 	 */
@@ -145,9 +147,11 @@ public class JavaRDDTest<T> extends JavaRDD<T> {
 	
 	/**
 	 * Metodo que comprueba si una funcion de tipo <b>treeReduce()</b>.
-	 *  - Comprueba que sea idempotente.
-	 *  - Comprueba que sea asociativa.
-	 *  - Comprueba que sea conmutativa.
+	 * 	<ul>
+	 * 		<li>Comprueba que sea idempotente.</li>
+	 * 		<li>Comprueba que sea asociativa.</li>
+	 * 		<li>Comprueba que sea conmutativa.</li>
+	 * 	</ul>
 	 * @param function (Function2<T, T, T>) - Funcion treeReduce que se desea testear.
 	 * @return T - Resultado de la operacion.
 	 */
@@ -186,8 +190,10 @@ public class JavaRDDTest<T> extends JavaRDD<T> {
 
 	/**
 	 * Metodo que comprueba si una funcion de tipo <b>filter()</b>.
-	 *  - Comprueba que sea idempotente.
-	 *  - Comprueba que falle un nodo.
+	 *	<ul>
+	 * 		<li>Comprueba que sea idempotente.</li>
+	 * 		<li>Comprueba que falle un nodo.</li>
+	 * 	</ul>
 	 * @param function (Function<T, Boolean>) - Funcion filter que se desea testear.
 	 * @return JavaRDD<T> - Resultado de la operacion.
 	 */
@@ -195,6 +201,7 @@ public class JavaRDDTest<T> extends JavaRDD<T> {
 		
 		JavaRDD<T> result = this.rdd().toJavaRDD().filter(function).sortBy(f -> f, true, this.getNumPartitions()).cache();
 		
+		// Idempotente
 		for (int i = 0; i < numRepetitions; i++) {
 			
 			JavaRDD<T> resultToCompare = this.rdd().toJavaRDD().filter(function).sortBy(f -> f, true, this.getNumPartitions());
@@ -217,8 +224,10 @@ public class JavaRDDTest<T> extends JavaRDD<T> {
 	
 	/**
 	 * Metodo que comprueba si una funcion de tipo <b>flatMap()</b>.
-	 *  - Comprueba que sea idempotente.
-	 *  - Comprueba que falle un nodo.
+	 *	<ul>
+	 * 		<li>Comprueba que sea idempotente.</li>
+	 * 		<li>Comprueba que falle un nodo.</li>
+	 * 	</ul>
 	 * @param function (FlatMapFunction<T, U>) - Funcion flatMap que se desea testear.
 	 * @return JavaRDD<U> - Resultado de la operacion.
 	 */
@@ -248,45 +257,78 @@ public class JavaRDDTest<T> extends JavaRDD<T> {
 	
 	/**
 	 * Metodo que comprueba si una funcion de tipo <b>flatMapToPair()</b>.
-	 *  - Comprueba que sea idempotente.
+	 *	<ul>
+	 * 		<li>Comprueba que sea idempotente.</li>
+	 * 		<li>Comprueba que falle un nodo.</li>
+	 * 	</ul>
 	 * @param function (PairFlatMapFunction<T, K2, V2>) - Funcion flatMapToPair que se desea testear.
 	 * @return JavaPairRDD<K2, V2> - Resultado de la operacion.
 	 */
 	public <K2, V2> JavaPairRDD<K2, V2> flatMapToPair(PairFlatMapFunction<T, K2, V2> f) {
 		
-		JavaPairRDD<K2, V2> result = this.flatMapToPair(f).sortByKey().cache();
+		JavaPairRDD<K2, V2> result = this.rdd().toJavaRDD().flatMapToPair(f).sortByKey().cache();
 		
+		// Idempotente
 		for (int i = 0; i < numRepetitions; i++) {
 			
-			JavaPairRDD<K2, V2> resultToCompare = this.flatMapToPair(f).sortByKey();
+			JavaPairRDD<K2, V2> resultToCompare = this.rdd().toJavaRDD().flatMapToPair(f).sortByKey();
 			Assert.assertEquals(result.collect(), resultToCompare.collect());
 		}
+		
+		// Que un nodo aleatorio falle y se vuelva a ejecutar por separado
+		JavaRDD<T> randomPartitionRDD = getRandomPartition(this.rdd().toJavaRDD());
+		JavaRDD<T> subtracRDD = subtractRDDElements(randomPartitionRDD, this.rdd().toJavaRDD());
+		
+		JavaPairRDD<K2, V2> randomPartitionRDDResult = randomPartitionRDD.flatMapToPair(f).sortByKey();
+		JavaPairRDD<K2, V2> subtracRDDResult = subtracRDD.flatMapToPair(f).sortByKey();
+		
+		JavaPairRDD<K2, V2> unionResult = randomPartitionRDDResult.union(subtracRDDResult).sortByKey();
+		
+		Assert.assertEquals(result.collect(), unionResult.collect());
 		
 		return result;
 	}
 	
 	/**
 	 * Metodo que comprueba si una funcion de tipo <b>flatMapToPair()</b>.
-	 *  - Comprueba que sea idempotente.
+	 *	<ul>
+	 * 		<li>Comprueba que sea idempotente.</li>
+	 * 		<li>Comprueba que falle un nodo.</li>
+	 * 	</ul>
 	 * @param function (PairFlatMapFunction<T, K2, V2>) - Funcion flatMapToPair que se desea testear.
 	 * @return JavaPairRDD<K2, V2> - Resultado de la operacion.
 	 */
 	public JavaDoubleRDD flatMapToDouble(DoubleFlatMapFunction<T> f) {
 		
-		JavaDoubleRDD result = this.flatMapToDouble(f).cache();
+		JavaDoubleRDD result = this.rdd().toJavaRDD().flatMapToDouble(f).cache();
 		
+		// Idempotente
 		for (int i = 0; i < numRepetitions; i++) {
 			
-			JavaDoubleRDD resultToCompare = this.flatMapToDouble(f);
-			Assert.assertEquals(result.collect(), resultToCompare.collect());
+			JavaDoubleRDD resultToCompare = this.rdd().toJavaRDD().flatMapToDouble(f);
+			Assert.assertEquals(result.takeOrdered((int) result.count()), resultToCompare.takeOrdered((int) resultToCompare.count()));
 		}
+		
+		// Que un nodo aleatorio falle y se vuelva a ejecutar por separado
+		JavaRDD<T> randomPartitionRDD = getRandomPartition(this.rdd().toJavaRDD());
+		JavaRDD<T> subtracRDD = subtractRDDElements(randomPartitionRDD, this.rdd().toJavaRDD());
+		
+		JavaDoubleRDD randomPartitionRDDResult = randomPartitionRDD.flatMapToDouble(f);
+		JavaDoubleRDD subtracRDDResult = subtracRDD.flatMapToDouble(f);
+		
+		JavaDoubleRDD unionResult = randomPartitionRDDResult.union(subtracRDDResult);
+		
+		Assert.assertEquals(result.takeOrdered((int) result.count()), unionResult.takeOrdered((int) unionResult.count()));
 		
 		return result;
 	}
 	
 	/**
 	 * Metodo que comprueba si una funcion de tipo <b>map()</b>.
-	 *  - Comprueba que sea idempotente.
+	 *	<ul>
+	 * 		<li>Comprueba que sea idempotente.</li>
+	 * 		<li>Comprueba que falle un nodo.</li>
+	 * 	</ul>
 	 * @param function (Function<T, R>) - Funcion map que se desea testear.
 	 * @return JavaRDD<R> - Resultado de la operacion.
 	 */
@@ -302,12 +344,26 @@ public class JavaRDDTest<T> extends JavaRDD<T> {
 			Assert.assertEquals(result.collect(), resultToCompare.collect());
 		}
 		
+		// Que un nodo aleatorio falle y se vuelva a ejecutar por separado
+		JavaRDD<T> randomPartitionRDD = getRandomPartition(this.rdd().toJavaRDD());
+		JavaRDD<T> subtracRDD = subtractRDDElements(randomPartitionRDD, this.rdd().toJavaRDD());
+		
+		JavaRDD<R> randomPartitionRDDResult = randomPartitionRDD.map(function);
+		JavaRDD<R> subtracRDDResult = subtracRDD.map(function);
+		
+		JavaRDD<R> unionResult = randomPartitionRDDResult.union(subtracRDDResult).sortBy(f -> f, true, this.getNumPartitions());
+		
+		Assert.assertEquals(result.collect(), unionResult.collect());
+		
 		return result;
 	}
 	
 	/**
 	 * Metodo que comprueba si una funcion de tipo <b>mapToPair()</b>.
-	 *  - Comprueba que sea idempotente.
+	 *	<ul>
+	 * 		<li>Comprueba que sea idempotente.</li>
+	 * 		<li>Comprueba que falle un nodo.</li>
+	 * 	</ul>
 	 * @param f (PairFunction<T, K, V>) - Funcion mapToPair que se desea testear.
 	 * @return JavaPairRDD<K, V> - Resultado de la operacion.
 	 */
@@ -321,12 +377,26 @@ public class JavaRDDTest<T> extends JavaRDD<T> {
 			Assert.assertEquals(result.collect(), resultToCompare.collect());
 		}
 		
+		// Que un nodo aleatorio falle y se vuelva a ejecutar por separado
+		JavaRDD<T> randomPartitionRDD = getRandomPartition(this.rdd().toJavaRDD());
+		JavaRDD<T> subtracRDD = subtractRDDElements(randomPartitionRDD, this.rdd().toJavaRDD());
+		
+		JavaPairRDD<K, V> randomPartitionRDDResult = randomPartitionRDD.mapToPair(f);
+		JavaPairRDD<K, V> subtracRDDResult = subtracRDD.mapToPair(f);
+		
+		JavaPairRDD<K, V> unionResult = randomPartitionRDDResult.union(subtracRDDResult).sortByKey();
+		
+		Assert.assertEquals(result.collect(), unionResult.collect());
+		
 		return result;
 	}
 	
 	/**
 	 * Metodo que comprueba si una funcion de tipo <b>mapPartitions()</b>.
-	 *  - Comprueba que sea idempotente.
+	 *	<ul>
+	 * 		<li>Comprueba que sea idempotente.</li>
+	 * 		<li>Comprueba que falle un nodo.</li>
+	 * 	</ul>
 	 * @param function (Function<Object, Object>) - Funcion mapPartitions que se desea testear.
 	 * @return JavaRDD<U> - Resultado de la operacion.
 	 */
@@ -340,13 +410,27 @@ public class JavaRDDTest<T> extends JavaRDD<T> {
 			Assert.assertEquals(result.collect(), resultToCompare.collect());
 		}
 		
+		// Que un nodo aleatorio falle y se vuelva a ejecutar por separado
+		JavaRDD<T> randomPartitionRDD = getRandomPartition(this.rdd().toJavaRDD());
+		JavaRDD<T> subtracRDD = subtractRDDElements(randomPartitionRDD, this.rdd().toJavaRDD());
+		
+		JavaRDD<U> randomPartitionRDDResult = randomPartitionRDD.mapPartitions(function);
+		JavaRDD<U> subtracRDDResult = subtracRDD.mapPartitions(function);
+		
+		JavaRDD<U> unionResult = randomPartitionRDDResult.union(subtracRDDResult).sortBy(f -> f, true, this.getNumPartitions());
+		
+		Assert.assertEquals(result.collect(), unionResult.collect());
+		
 		return result;
 	}
 	
 	
 	/**
 	 * Metodo que comprueba si una funcion de tipo <b>mapPartitions()</b>.
-	 *  - Comprueba que sea idempotente.
+	 *	<ul>
+	 * 		<li>Comprueba que sea idempotente.</li>
+	 * 		<li>Comprueba que falle un nodo.</li>
+	 * 	</ul>
 	 * @param f (Function<Object, Object>) - Funcion mapPartitions que se desea testear.
 	 * @param preservesPartitioning (Boolean) - Indica si se conserva el particionado.
 	 * @return JavaRDD<U> - Resultado de la operacion.
@@ -363,12 +447,26 @@ public class JavaRDDTest<T> extends JavaRDD<T> {
 			Assert.assertEquals(result.collect(), resultToCompare.collect());
 		}
 		
+		// Que un nodo aleatorio falle y se vuelva a ejecutar por separado
+		JavaRDD<T> randomPartitionRDD = getRandomPartition(this.rdd().toJavaRDD());
+		JavaRDD<T> subtracRDD = subtractRDDElements(randomPartitionRDD, this.rdd().toJavaRDD());
+		
+		JavaRDD<U> randomPartitionRDDResult = randomPartitionRDD.mapPartitions(f, preservesPartitioning);
+		JavaRDD<U> subtracRDDResult = subtracRDD.mapPartitions(f, preservesPartitioning);
+		
+		JavaRDD<U> unionResult = randomPartitionRDDResult.union(subtracRDDResult).sortBy(e -> e, true, this.getNumPartitions());
+		
+		Assert.assertEquals(result.collect(), unionResult.collect());
+		
 		return result;
 	}
 	
 	/**
 	 * Metodo que comprueba si una funcion de tipo <b>mapPartitionsToDouble()</b>.
-	 *  - Comprueba que sea idempotente.
+	 *	<ul>
+	 * 		<li>Comprueba que sea idempotente.</li>
+	 * 		<li>Comprueba que falle un nodo.</li>
+	 * 	</ul>
 	 * @param f (Function<Object, Object>) - Funcion mapPartitionsToDouble que se desea testear.
 	 * @return JavaDoubleRDD - Resultado de la operacion.
 	 */
@@ -379,89 +477,156 @@ public class JavaRDDTest<T> extends JavaRDD<T> {
 		for (int i = 0; i < numRepetitions; i++) {
 			
 			JavaDoubleRDD resultToCompare = this.rdd().toJavaRDD().mapPartitionsToDouble(f).cache();
-			Assert.assertEquals(result.collect(), resultToCompare.collect());
+			Assert.assertEquals(result.takeOrdered((int) result.count()), resultToCompare.takeOrdered((int) resultToCompare.count()));
 		}
+		
+		// Que un nodo aleatorio falle y se vuelva a ejecutar por separado
+		JavaRDD<T> randomPartitionRDD = getRandomPartition(this.rdd().toJavaRDD());
+		JavaRDD<T> subtracRDD = subtractRDDElements(randomPartitionRDD, this.rdd().toJavaRDD());
+		
+		JavaDoubleRDD randomPartitionRDDResult = randomPartitionRDD.mapPartitionsToDouble(f);
+		JavaDoubleRDD subtracRDDResult = subtracRDD.mapPartitionsToDouble(f);
+		
+		JavaDoubleRDD unionResult = randomPartitionRDDResult.union(subtracRDDResult);
+		
+		Assert.assertEquals(result.takeOrdered((int) result.count()), unionResult.takeOrdered((int) unionResult.count()));
 		
 		return result;
 	}
 	
 	/**
 	 * Metodo que comprueba si una funcion de tipo <b>mapPartitionsToDouble()</b>.
-	 *  - Comprueba que sea idempotente.
+	 *	<ul>
+	 * 		<li>Comprueba que sea idempotente.</li>
+	 * 		<li>Comprueba que falle un nodo.</li>
+	 * 	</ul>
 	 * @param f (Function<Object, Object>) - Funcion mapPartitionsToDouble que se desea testear.
 	 * @param preservesPartitioning (Boolean) - Indica si se conserva el particionado.
 	 * @return JavaDoubleRDD - Resultado de la operacion.
 	 */
 	public JavaDoubleRDD mapPartitionsToDouble(DoubleFlatMapFunction<Iterator<T>> f, boolean preservesPartitioning) {
 		
-		JavaDoubleRDD result = this.mapPartitionsToDouble(f, preservesPartitioning).cache();
+		JavaDoubleRDD result = this.rdd().toJavaRDD().mapPartitionsToDouble(f, preservesPartitioning).cache();
 		
 		for (int i = 0; i < numRepetitions; i++) {
 			
-			JavaDoubleRDD resultToCompare = this.mapPartitionsToDouble(f, preservesPartitioning).cache();
-			Assert.assertEquals(result.collect(), resultToCompare.collect());
+			JavaDoubleRDD resultToCompare = this.rdd().toJavaRDD().mapPartitionsToDouble(f, preservesPartitioning).cache();
+			Assert.assertEquals(result.takeOrdered((int) result.count()), resultToCompare.takeOrdered((int) resultToCompare.count()));
 		}
+		
+		// Que un nodo aleatorio falle y se vuelva a ejecutar por separado
+		JavaRDD<T> randomPartitionRDD = getRandomPartition(this.rdd().toJavaRDD());
+		JavaRDD<T> subtracRDD = subtractRDDElements(randomPartitionRDD, this.rdd().toJavaRDD());
+		
+		JavaDoubleRDD randomPartitionRDDResult = randomPartitionRDD.mapPartitionsToDouble(f, preservesPartitioning);
+		JavaDoubleRDD subtracRDDResult = subtracRDD.mapPartitionsToDouble(f, preservesPartitioning);
+		
+		JavaDoubleRDD unionResult = randomPartitionRDDResult.union(subtracRDDResult);
+		
+		Assert.assertEquals(result.takeOrdered((int) result.count()), unionResult.takeOrdered((int) unionResult.count()));
 		
 		return result;
 	}
 	
 	/**
 	 * Metodo que comprueba si una funcion de tipo <b>mapPartitionsToPair()</b>.
-	 *  - Comprueba que sea idempotente.
+	 *	<ul>
+	 * 		<li>Comprueba que sea idempotente.</li>
+	 * 		<li>Comprueba que falle un nodo.</li>
+	 * 	</ul>
 	 * @param f (PairFlatMapFunction<Iterator<T>, K2, V2>) - Funcion mapPartitionsToPair que se desea testear.
 	 * @return JavaPairRDD<K2, V2> - Resultado de la operacion.
 	 */
 	public <K2, V2> JavaPairRDD<K2, V2> mapPartitionsToPair(PairFlatMapFunction<Iterator<T>, K2, V2> f) {
 		
-		JavaPairRDD<K2, V2> result = this.mapPartitionsToPair(f).sortByKey().cache();
+		JavaPairRDD<K2, V2> result = this.rdd().toJavaRDD().mapPartitionsToPair(f).sortByKey().cache();
 		
 		for (int i = 0; i < numRepetitions; i++) {
 			
-			JavaPairRDD<K2, V2> resultToCompare = this.mapPartitionsToPair(f).sortByKey();
+			JavaPairRDD<K2, V2> resultToCompare = this.rdd().toJavaRDD().mapPartitionsToPair(f).sortByKey();
 			Assert.assertEquals(result.collect(), resultToCompare.collect());
 		}
+		
+		// Que un nodo aleatorio falle y se vuelva a ejecutar por separado
+		JavaRDD<T> randomPartitionRDD = getRandomPartition(this.rdd().toJavaRDD());
+		JavaRDD<T> subtracRDD = subtractRDDElements(randomPartitionRDD, this.rdd().toJavaRDD());
+		
+		JavaPairRDD<K2, V2> randomPartitionRDDResult = randomPartitionRDD.mapPartitionsToPair(f);
+		JavaPairRDD<K2, V2> subtracRDDResult = subtracRDD.mapPartitionsToPair(f);
+		
+		JavaPairRDD<K2, V2> unionResult = randomPartitionRDDResult.union(subtracRDDResult).sortByKey();
+		
+		Assert.assertEquals(result.collect(), unionResult.collect());
 		
 		return result;
 	}
 	
 	/**
 	 * Metodo que comprueba si una funcion de tipo <b>mapPartitionsToPair()</b>.
-	 *  - Comprueba que sea idempotente.
+	 *	<ul>
+	 * 		<li>Comprueba que sea idempotente.</li>
+	 * 		<li>Comprueba que falle un nodo.</li>
+	 * 	</ul>
 	 * @param f (PairFlatMapFunction<Iterator<T>, K2, V2>) - Funcion mapPartitionsToPair que se desea testear.
 	 * @param preservesPartitioning (Boolean) - Indica si se conserva el particionado.
 	 * @return JavaPairRDD<K2, V2> - Resultado de la operacion.
 	 */
 	public <K2, V2> JavaPairRDD<K2, V2> mapPartitionsToPair(PairFlatMapFunction<Iterator<T>, K2, V2> f, boolean preservesPartitioning) {
 		
-		JavaPairRDD<K2, V2> result = this.mapPartitionsToPair(f, preservesPartitioning).sortByKey().cache();
+		JavaPairRDD<K2, V2> result = this.rdd().toJavaRDD().mapPartitionsToPair(f, preservesPartitioning).sortByKey().cache();
 		
 		for (int i = 0; i < numRepetitions; i++) {
 			
-			JavaPairRDD<K2, V2> resultToCompare = this.mapPartitionsToPair(f, preservesPartitioning).sortByKey();
+			JavaPairRDD<K2, V2> resultToCompare = this.rdd().toJavaRDD().mapPartitionsToPair(f, preservesPartitioning).sortByKey();
 			Assert.assertEquals(result.collect(), resultToCompare.collect());
 		}
+		
+		// Que un nodo aleatorio falle y se vuelva a ejecutar por separado
+		JavaRDD<T> randomPartitionRDD = getRandomPartition(this.rdd().toJavaRDD());
+		JavaRDD<T> subtracRDD = subtractRDDElements(randomPartitionRDD, this.rdd().toJavaRDD());
+		
+		JavaPairRDD<K2, V2> randomPartitionRDDResult = randomPartitionRDD.mapPartitionsToPair(f, preservesPartitioning);
+		JavaPairRDD<K2, V2> subtracRDDResult = subtracRDD.mapPartitionsToPair(f, preservesPartitioning);
+		
+		JavaPairRDD<K2, V2> unionResult = randomPartitionRDDResult.union(subtracRDDResult).sortByKey();
+		
+		Assert.assertEquals(result.collect(), unionResult.collect());
 		
 		return result;
 	}
 	
 	/**
 	 * Metodo que comprueba si una funcion de tipo <b>mapPartitionsWithIndex()</b>.
-	 *  - Comprueba que sea idempotente.
+	 *	<ul>
+	 * 		<li>Comprueba que sea idempotente.</li>
+	 * 		<li>Comprueba que falle un nodo.</li>
+	 * 	</ul>
 	 * @param f (Function2<Integer, Iterator<T>, Iterator<R>>) - Funcion mapPartitionsWithIndex que se desea testear.
 	 * @param preservesPartitioning (Boolean) - Indica si se conserva el particionado.
 	 * @return JavaRDD<R> - Resultado de la operacion.
 	 */
 	public <R> JavaRDD<R> mapPartitionsWithIndex(Function2<Integer, Iterator<T>, Iterator<R>> f, boolean preservesPartitioning) {
 		
-		JavaRDD<R> result = this.mapPartitionsWithIndex(f, preservesPartitioning);
+		JavaRDD<R> result = this.rdd().toJavaRDD().mapPartitionsWithIndex(f, preservesPartitioning);
 		result = result.sortBy(e -> e, true, result.getNumPartitions()).cache();
 		
 		for (int i = 0; i < numRepetitions; i++) {
 			
-			JavaRDD<R> resultToCompare = this.mapPartitionsWithIndex(f, preservesPartitioning);
-			resultToCompare.sortBy(e -> e, true, result.getNumPartitions());
+			JavaRDD<R> resultToCompare = this.rdd().toJavaRDD().mapPartitionsWithIndex(f, preservesPartitioning);
+			resultToCompare.sortBy(e -> e, true, resultToCompare.getNumPartitions());
 			Assert.assertEquals(result.collect(), resultToCompare.collect());
 		}
+		
+		// Que un nodo aleatorio falle y se vuelva a ejecutar por separado
+		JavaRDD<T> randomPartitionRDD = getRandomPartition(this.rdd().toJavaRDD());
+		JavaRDD<T> subtracRDD = subtractRDDElements(randomPartitionRDD, this.rdd().toJavaRDD());
+		
+		JavaRDD<R> randomPartitionRDDResult = randomPartitionRDD.mapPartitionsWithIndex(f, preservesPartitioning);
+		JavaRDD<R> subtracRDDResult = subtracRDD.mapPartitionsWithIndex(f, preservesPartitioning);
+		
+		JavaRDD<R> unionResult = randomPartitionRDDResult.union(subtracRDDResult).sortBy(e -> e, true, result.getNumPartitions());
+		
+		Assert.assertEquals(result.collect(), unionResult.collect());
 		
 		return result;
 	}
