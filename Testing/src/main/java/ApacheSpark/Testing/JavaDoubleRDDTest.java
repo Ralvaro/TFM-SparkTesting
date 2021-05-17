@@ -19,7 +19,8 @@ import org.junit.Assert;
 import scala.collection.JavaConversions;
 
 /**
- * Clase que representa un objeto JavaDoubleRDDTest que contiene los metodos para testear las funciones que dispone un JavaDoubleRDD.
+ * Clase que representa un objeto JavaDoubleRDDTest que contiene los metodos para testing de las funciones que dispone la clase JavaDoubleRDD.
+ * @see JavaDoubleRDD
  * @author Alvaro R. Perez Entrenas
  */
 public class JavaDoubleRDDTest extends JavaDoubleRDD {
@@ -108,6 +109,7 @@ public class JavaDoubleRDDTest extends JavaDoubleRDD {
 	 * 		<li>Comprueba que sea conmutativa.</li>
 	 * 	</ul>
 	 * @param f (Function2<Double, Double, Double>) - Funcion reduce que se desea testear.
+	 * @return Double - Resultado de la operacion.
 	 */
 	public Double reduce(Function2<Double, Double, Double> f) {
 		
@@ -652,10 +654,10 @@ public class JavaDoubleRDDTest extends JavaDoubleRDD {
 	}
 	
 	/**
-	 * Metodo que crea un nuevo RDD de los elementos.
+	 * Metodo que crea un nuevo RDD de los elementos de RDD1 que no aparecen en RDD2.
 	 * @param rdd1
 	 * @param rdd2
-	 * @return
+	 * @return JavaRDD<Double> - RDD con el conjunto de datos final.
 	 */
 	private JavaRDD<Double> subtractRDDElements(JavaRDD<Double> rdd1, JavaRDD<Double>  rdd2) {
 		
@@ -676,8 +678,8 @@ public class JavaDoubleRDDTest extends JavaDoubleRDD {
 	
 	/**
 	 * Metodo para obtener un RDD con los elementos de una particion aleatoria de otro RDD.
-	 * @param javaRDD
-	 * @return
+	 * @param javaRDD JavaRDD<Double>
+	 * @return JavaRDD<Double> - RDD con el conjunto de datos de una particion aleatoria.
 	 */
 	private JavaRDD<Double> getRandomPartition(JavaRDD<Double> javaRDD) {
 		

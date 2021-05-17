@@ -20,7 +20,8 @@ import scala.collection.JavaConversions;
 import scala.reflect.ClassTag;
 
 /**
- * Clase que representa un objeto JavaRDDTest que contiene los metodos para testear las funciones que dispone un JavaRDD.
+ * Clase que representa un objeto JavaRDDTest que contiene los metodos para testing los metodos que dispone la clase JavaRDD.
+ * @see JavaRDD
  * @author Alvaro R. Perez Entrenas
  */
 public class JavaRDDTest<T> extends JavaRDD<T> {
@@ -261,7 +262,7 @@ public class JavaRDDTest<T> extends JavaRDD<T> {
 	 * 		<li>Comprueba que sea idempotente.</li>
 	 * 		<li>Comprueba que falle un nodo.</li>
 	 * 	</ul>
-	 * @param function (PairFlatMapFunction<T, K2, V2>) - Funcion flatMapToPair que se desea testear.
+	 * @param f (PairFlatMapFunction<T, K2, V2>) - Funcion flatMapToPair que se desea testear.
 	 * @return JavaPairRDD<K2, V2> - Resultado de la operacion.
 	 */
 	public <K2, V2> JavaPairRDD<K2, V2> flatMapToPair(PairFlatMapFunction<T, K2, V2> f) {
@@ -295,8 +296,8 @@ public class JavaRDDTest<T> extends JavaRDD<T> {
 	 * 		<li>Comprueba que sea idempotente.</li>
 	 * 		<li>Comprueba que falle un nodo.</li>
 	 * 	</ul>
-	 * @param function (PairFlatMapFunction<T, K2, V2>) - Funcion flatMapToPair que se desea testear.
-	 * @return JavaPairRDD<K2, V2> - Resultado de la operacion.
+	 * @param f (DoubleFlatMapFunction<T>) - Funcion flatMapToPair que se desea testear.
+	 * @return JavaDoubleRDD - Resultado de la operacion.
 	 */
 	public JavaDoubleRDD flatMapToDouble(DoubleFlatMapFunction<T> f) {
 		
@@ -632,10 +633,10 @@ public class JavaRDDTest<T> extends JavaRDD<T> {
 	}
 	
 	/**
-	 * Metodo que crea un nuevo RDD de los elementos.
+	 * Metodo que crea un nuevo RDD de los elementos de RDD1 que no aparecen en RDD2.
 	 * @param rdd1
 	 * @param rdd2
-	 * @return
+	 * @return JavaRDD<T> - RDD con el conjunto de datos final.
 	 */
 	private JavaRDD<T> subtractRDDElements(JavaRDD<T> rdd1, JavaRDD<T> rdd2) {
 		
@@ -656,8 +657,8 @@ public class JavaRDDTest<T> extends JavaRDD<T> {
 	
 	/**
 	 * Metodo para obtener un RDD con los elementos de una particion aleatoria de otro RDD.
-	 * @param rdd
-	 * @return
+	 * @param javaRDD JavaRDD<T>
+	 * @return JavaRDD<Double> - RDD con el conjunto de datos de una particion aleatoria.
 	 */
 	private JavaRDD<T> getRandomPartition(JavaRDD<T> rdd) {
 		

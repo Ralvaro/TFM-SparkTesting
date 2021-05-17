@@ -8,7 +8,8 @@ import org.junit.Assert;
 
 
 /**
- * Clase que representa un objeto JavaPairRDDTest que contiene los metodos para testear las funciones que dispone un JavaPairRDD.
+ * Clase que representa un objeto JavaPairRDDTest que contiene los metodos para testing de los metodos que dispone la clase JavaPairRDD.
+ * @see JavaPairRDD
  * @author Alvaro R. Perez Entrenas
  */
 public class JavaPairRDDTest<K, V> extends JavaPairRDD<K, V> {
@@ -83,7 +84,11 @@ public class JavaPairRDDTest<K, V> extends JavaPairRDD<K, V> {
 	
 	/**
 	 * Metodo que comprueba si una funcion de tipo <b>reduceByKey()</b>.
-	 *  - Comprueba que sea idempotente.
+	 * 	<ul>
+	 * 		<li>Comprueba que sea idempotente.</li>
+	 * 		<li>Comprueba que sea asociativa.</li>
+	 * 		<li>Comprueba que sea conmutativa.</li>
+	 * 	</ul>
 	 * @param f (Function2<V, V, V>) - Funcion reduceByKey que se desea testear.
 	 * @return JavaPairRDD<K, V> - Resultado de la operacion.
 	 */
@@ -121,7 +126,11 @@ public class JavaPairRDDTest<K, V> extends JavaPairRDD<K, V> {
 	
 	/**
 	 * Metodo que comprueba si una funcion de tipo <b>reduceByKey()</b>.
-	 *  - Comprueba que sea idempotente.
+	 * 	<ul>
+	 * 		<li>Comprueba que sea idempotente.</li>
+	 * 		<li>Comprueba que sea asociativa.</li>
+	 * 		<li>Comprueba que sea conmutativa.</li>
+	 * 	</ul>
 	 * @param f (Function2<V, V, V>) - Funcion reduceByKey que se desea testear.
 	 * @param numPartitions (int) - Numero de particiones deseadas.
 	 * @return JavaPairRDD<K, V> - Resultado de la operacion.
@@ -160,7 +169,11 @@ public class JavaPairRDDTest<K, V> extends JavaPairRDD<K, V> {
 	
 	/**
 	 * Metodo que comprueba si una funcion de tipo <b>reduceByKey()</b>.
-	 *  - Comprueba que sea idempotente.
+	 * 	<ul>
+	 * 		<li>Comprueba que sea idempotente.</li>
+	 * 		<li>Comprueba que sea asociativa.</li>
+	 * 		<li>Comprueba que sea conmutativa.</li>
+	 * 	</ul>
 	 * @param zeroValue (U) - 
 	 * @param function (Function2<V, V, V>) - Funcion reduceByKey que se desea testear.
 	 * @return JavaPairRDD<K, U> - Resultado de la operacion.
@@ -199,7 +212,11 @@ public class JavaPairRDDTest<K, V> extends JavaPairRDD<K, V> {
 	
 	/**
 	 * Metodo que comprueba si una funcion de tipo <b>reduceByKey()</b>.
-	 *  - Comprueba que sea idempotente.
+	 * 	<ul>
+	 * 		<li>Comprueba que sea idempotente.</li>
+	 * 		<li>Comprueba que sea asociativa.</li>
+	 * 		<li>Comprueba que sea conmutativa.</li>
+	 * 	</ul>
 	 * @param zeroValue (U) - 
 	 * @param function (Function2<V, V, V>) - Funcion reduceByKey que se desea testear.
 	 * @return JavaPairRDD<K, U> - Resultado de la operacion.
