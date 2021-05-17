@@ -47,11 +47,6 @@ public class TestJavaRDDTest {
 	 * Lista de letras (String)
 	 */
 	private List<String> lettersList = null;
-	
-	/**
-	 * Lista de tuplas
-	 */
-	private List<Tuple2<String, Integer>> tupleList = null;
 
 	/**
 	 * Metodo para inicializar las variables y configurar y crear el Spark Context antes de ejecutar los tests.
@@ -75,22 +70,6 @@ public class TestJavaRDDTest {
 		wordsList = Arrays.asList("no", "ha", "mucho", "tiempo", "que", "vivia", "un", "hidalgo", "de", "los", "de", "lanza", "en", "astillero");
 		
 		lettersList = Arrays.asList("a", "d", "a", "r", "g", "a", "a", "n", "t", "i", "g", "u", "a");
-		
-		tupleList = new ArrayList<Tuple2<String, Integer>>();
-			tupleList.add(new Tuple2<String, Integer>("C", 7));
-			tupleList.add(new Tuple2<String, Integer>("A", 3));
-			tupleList.add(new Tuple2<String, Integer>("A", 1));
-			tupleList.add(new Tuple2<String, Integer>("B", 2));
-			tupleList.add(new Tuple2<String, Integer>("C", 7));
-			tupleList.add(new Tuple2<String, Integer>("A", 1));
-			tupleList.add(new Tuple2<String, Integer>("B", 2));
-			tupleList.add(new Tuple2<String, Integer>("C", 7));
-			tupleList.add(new Tuple2<String, Integer>("A", 3));
-			tupleList.add(new Tuple2<String, Integer>("A", 3));
-			tupleList.add(new Tuple2<String, Integer>("A", 1));
-			tupleList.add(new Tuple2<String, Integer>("B", 2));
-			tupleList.add(new Tuple2<String, Integer>("C", 7));
-		
 		
 	}
 
